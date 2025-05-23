@@ -108,7 +108,7 @@
             color: #2d3748; /* Darker text */
             flex-shrink: 0; /* Don't shrink the site name */
         }
-        #urlList li a {
+        #urlList li a, #urlList li .no-link {
             color: #2b6cb0; /* blue-700 */
             text-decoration: none;
             font-size: 0.9375rem; /* text-sm md:text-base */
@@ -151,7 +151,7 @@
 
         <label for="addressInput">Enter a New Zealand Address:</label>
         <input type="text" id="addressInput" placeholder="e.g., 21 Neptune Avenue, Auckland" class="rounded-md">
-        <button id="searchButton" class="rounded-md">Generate Link</button>
+        <button id="searchButton" class="rounded-md">Generate Links</button>
 
         <div class="loading-spinner" id="loadingSpinner"></div>
         <p class="error-message" id="errorMessage"></p>
@@ -171,21 +171,30 @@
         const loadingSpinner = document.getElementById('loadingSpinner');
 
         // Function to add a link to the list
-        function addLinkToUI(siteName, url) {
+        function addLinkToUI(siteName, url, isError = false) {
             const listItem = document.createElement('li');
             
             const nameSpan = document.createElement('span');
-            nameSpan.className = 'site-name'; // Apply styling class
+            nameSpan.className = 'site-name'; 
             nameSpan.textContent = siteName;
 
-            const link = document.createElement('a');
-            link.href = url;
-            link.textContent = url;
-            link.target = '_blank'; // Open in a new tab
-            link.rel = 'noopener noreferrer'; // Security best practice
-
-            listItem.appendChild(nameSpan);
-            listItem.appendChild(link);
+            // If it's an error or no link, display plain text, otherwise display clickable link
+            if (isError || url.startsWith('Error') || url.startsWith('No direct')) {
+                const textSpan = document.createElement('span');
+                textSpan.className = 'no-link'; // Class for non-clickable text
+                textSpan.textContent = url;
+                if (isError) textSpan.style.color = 'red'; // Make errors red
+                listItem.appendChild(nameSpan);
+                listItem.appendChild(textSpan);
+            } else {
+                const link = document.createElement('a');
+                link.href = url;
+                link.textContent = url;
+                link.target = '_blank'; // Open in a new tab
+                link.rel = 'noopener noreferrer'; // Security best practice
+                listItem.appendChild(nameSpan);
+                listItem.appendChild(link);
+            }
             urlList.appendChild(listItem);
         }
 
@@ -202,34 +211,69 @@
             loadingSpinner.style.display = 'block'; // Show spinner
             searchButton.disabled = true; // Disable button during search
 
-            try {
-                const backendUrl = '/api/get-realestate-url'; 
+            // Define the API endpoints for each site
+            const apiEndpoints = [
+                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url' },
+                { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' }
+                // Add more sites here when ready
+            ];
 
-                const response = await fetch(backendUrl, {
+            const fetchPromises = apiEndpoints.map(apiInfo => 
+                fetch(apiInfo.url, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ address: address })
+                })
+                .then(response => {
+                    // Check if response was OK (status 200-299)
+                    if (response.ok) {
+                        return response.json();
+                    } else {
+                        // If not OK, parse error message from body if available
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                        }).catch(() => {
+                            // Catch JSON parsing errors for non-OK responses
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        });
+                    }
+                })
+                .then(data => ({ siteName: apiInfo.siteName, result: data.url })) // Return siteName and successful URL
+                .catch(error => ({ siteName: apiInfo.siteName, error: error.message })) // Return siteName and error message
+            );
+
+            try {
+                // Use Promise.allSettled to wait for all fetches to complete,
+                // regardless of success or failure for individual calls.
+                const results = await Promise.allSettled(fetchPromises);
+
+                results.forEach(promiseResult => {
+                    if (promiseResult.status === 'fulfilled') {
+                        const { siteName, result } = promiseResult.value;
+                        if (result) {
+                            addLinkToUI(siteName, result);
+                        } else {
+                            // This would catch cases where data.url was not present but no error was thrown
+                            addLinkToUI(siteName, "No direct link found.", true); 
+                        }
+                    } else { // promiseResult.status === 'rejected'
+                        // This case should ideally be caught by the .catch in the map,
+                        // but it's here as a fallback for any unexpected promise rejections.
+                        const { siteName, error } = promiseResult.reason || promiseResult.value; // Get siteName and error from value/reason
+                        addLinkToUI(siteName, error || "Unknown error occurred.", true); 
+                    }
                 });
-                
-                if (!response.ok) {
-                    const errorData = await response.json(); 
-                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                }
 
-                const data = await response.json(); 
-
-                if (data.url) {
-                    // Use the new function to add the link with site name
-                    addLinkToUI("RealEstate.co.nz", data.url);
-                } else {
-                    urlList.innerHTML = '<li>No direct property link found for RealEstate.co.nz.</li>';
+                // Check if any link was successfully generated
+                const anyLinkGenerated = results.some(r => r.status === 'fulfilled' && r.value && r.value.result);
+                if (!anyLinkGenerated) {
+                    errorMessage.textContent = 'No property links could be generated for the given address.';
                 }
 
             } catch (error) {
-                console.error('Error fetching/parsing data:', error);
-                errorMessage.textContent = error.message || 'An unexpected error occurred. Please try again.';
+                // This catch block would only be hit if Promise.allSettled itself failed (unlikely)
+                console.error('Overall error during link generation:', error);
+                errorMessage.textContent = error.message || 'An unexpected error occurred during link generation.';
             } finally {
                 loadingSpinner.style.display = 'none'; // Hide spinner
                 searchButton.disabled = false; // Re-enable button
