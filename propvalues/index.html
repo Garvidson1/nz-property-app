@@ -90,21 +90,34 @@
             padding: 0;
             margin: 0;
         }
+        /* Styling for the new list item layout */
         #urlList li {
             background-color: #e0f2fe; /* blue-50 */
             padding: 12px 15px;
             border-radius: 6px; /* rounded-md */
             border: 1px solid #90cdf4; /* blue-200 */
             margin-bottom: 0.75rem; /* space-y-3 equivalent */
-            word-wrap: break-word; /* Ensure long URLs wrap */
+            display: flex; /* Use flexbox for layout */
+            justify-content: space-between; /* Space out items */
+            align-items: center; /* Vertically align items */
+            gap: 1rem; /* Space between site name and URL */
+            flex-wrap: wrap; /* Allow wrapping on small screens */
         }
-        #urlList a {
+        #urlList li .site-name {
+            font-weight: 600; /* Semi-bold for the site name */
+            color: #2d3748; /* Darker text */
+            flex-shrink: 0; /* Don't shrink the site name */
+        }
+        #urlList li a {
             color: #2b6cb0; /* blue-700 */
             text-decoration: none;
             font-size: 0.9375rem; /* text-sm md:text-base */
             transition: color 0.2s ease-in-out;
+            word-break: break-all; /* Allow long URLs to break */
+            text-align: right; /* Align URL to the right */
+            flex-grow: 1; /* Allow URL to take up available space */
         }
-        #urlList a:hover {
+        #urlList li a:hover {
             text-decoration: underline;
             color: #1a365d; /* blue-900 */
         }
@@ -140,78 +153,4 @@
         <input type="text" id="addressInput" placeholder="e.g., 21 Neptune Avenue, Auckland" class="rounded-md">
         <button id="searchButton" class="rounded-md">Generate Link</button>
 
-        <div class="loading-spinner" id="loadingSpinner"></div>
-        <p class="error-message" id="errorMessage"></p>
-
-        <div id="results">
-            <h2>Generated Link:</h2>
-            <ul id="urlList">
-                </ul>
-        </div>
-    </div>
-
-    <script>
-        const addressInput = document.getElementById('addressInput');
-        const searchButton = document.getElementById('searchButton');
-        const urlList = document.getElementById('urlList');
-        const errorMessage = document.getElementById('errorMessage');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-
-        searchButton.addEventListener('click', async () => {
-            const address = addressInput.value.trim();
-            urlList.innerHTML = ''; // Clear previous results
-            errorMessage.textContent = ''; // Clear previous errors
-            
-            if (address === '') {
-                errorMessage.textContent = 'Please enter an address.';
-                return;
-            }
-
-            loadingSpinner.style.display = 'block'; // Show spinner
-            searchButton.disabled = true; // Disable button during search
-
-            try {
-                // This path `/api/get-realestate-url` is what Vercel understands
-                const backendUrl = '/api/get-realestate-url'; 
-
-                const response = await fetch(backendUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ address: address }) // Send address in the request body
-                });
-                
-                if (!response.ok) {
-                    const errorData = await response.json(); 
-                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                }
-
-                const data = await response.json(); 
-
-                if (data.url) {
-                    const finalUrl = data.url;
-
-                    const listItem = document.createElement('li');
-                    const link = document.createElement('a');
-                    link.href = finalUrl;
-                    link.textContent = finalUrl;
-                    link.target = '_blank'; // Open in a new tab
-                    listItem.appendChild(link);
-                    urlList.appendChild(listItem);
-                } else {
-                    // This case should ideally be caught by the backend's 404 response
-                    urlList.innerHTML = '<li>No matching property found or insufficient data for URL generation.</li>';
-                }
-
-            } catch (error) {
-                console.error('Error fetching/parsing data:', error);
-                errorMessage.textContent = error.message || 'An unexpected error occurred. Please try again.';
-            } finally {
-                loadingSpinner.style.display = 'none'; // Hide spinner
-                searchButton.disabled = false; // Re-enable button
-            }
-        });
-    </script>
-</body>
-</html>
+        <div class="loading-spinner" id="loadingSpinner
