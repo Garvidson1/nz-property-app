@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NZ Property Link Finder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Basic styling for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full viewport height */
+        }
+        .container {
+            background-color: #ffffff; /* White card background */
+            padding: 30px;
+            border-radius: 12px; /* Rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            max-width: 500px; /* Max width for readability */
+            width: 100%;
+            border: 1px solid #e2e8f0; /* Subtle border */
+        }
+        h1 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            color: #2d3748; /* gray-800 */
+            text-align: center;
+            margin-bottom: 2rem; /* mb-8 */
+        }
+        label {
+            display: block;
+            font-size: 0.9375rem; /* text-base (slightly smaller) */
+            font-weight: 600; /* font-semibold */
+            color: #4a5568; /* gray-700 */
+            margin-bottom: 0.5rem; /* mb-2 */
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #cbd5e0; /* gray-300 */
+            border-radius: 8px; /* rounded-lg */
+            font-size: 1rem; /* text-base */
+            color: #2d3748;
+            outline: none;
+            transition: all 0.2s ease-in-out;
+            margin-bottom: 1.25rem; /* mb-5 */
+        }
+        input[type="text"]:focus {
+            border-color: #4299e1; /* blue-500 */
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* focus-ring */
+        }
+        button {
+            width: 100%;
+            background-color: #3182ce; /* blue-600 */
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px; /* rounded-lg */
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 700; /* font-bold */
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 4px 10px rgba(49, 130, 206, 0.3); /* shadow-lg */
+        }
+        button:hover {
+            background-color: #2b6cb0; /* blue-700 */
+            box-shadow: 0 6px 15px rgba(49, 130, 206, 0.4); /* hover:shadow-xl */
+            transform: translateY(-2px); /* hover:translate-y-0.5 */
+        }
+        #results {
+            margin-top: 2rem; /* mt-8 */
+            padding-top: 1.5rem; /* pt-6 */
+            border-top: 1px solid #ebf4f8; /* border-gray-200 */
+        }
+        #results h2 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            color: #4a5568; /* gray-700 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        #urlList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #urlList li {
+            background-color: #e0f2fe; /* blue-50 */
+            padding: 12px 15px;
+            border-radius: 6px; /* rounded-md */
+            border: 1px solid #90cdf4; /* blue-200 */
+            margin-bottom: 0.75rem; /* space-y-3 equivalent */
+            word-wrap: break-word; /* Ensure long URLs wrap */
+        }
+        #urlList a {
+            color: #2b6cb0; /* blue-700 */
+            text-decoration: none;
+            font-size: 0.9375rem; /* text-sm md:text-base */
+            transition: color 0.2s ease-in-out;
+        }
+        #urlList a:hover {
+            text-decoration: underline;
+            color: #1a365d; /* blue-900 */
+        }
+        .error-message {
+            color: #e53e3e; /* red-600 */
+            text-align: center;
+            margin-top: 1rem; /* mt-4 */
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 500; /* font-medium */
+        }
+        .loading-spinner {
+            display: none; /* hidden by default */
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 1.5rem auto; /* mx-auto mt-6 */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Find Your NZ Property Link</h1>
+
+        <label for="addressInput">Enter a New Zealand Address:</label>
+        <input type="text" id="addressInput" placeholder="e.g., 21 Neptune Avenue, Auckland" class="rounded-md">
+        <button id="searchButton" class="rounded-md">Generate Link</button>
+
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <p class="error-message" id="errorMessage"></p>
+
+        <div id="results">
+            <h2>Generated Link:</h2>
+            <ul id="urlList">
+                </ul>
+        </div>
+    </div>
+
+    <script>
+        const addressInput = document.getElementById('addressInput');
+        const searchButton = document.getElementById('searchButton');
+        const urlList = document.getElementById('urlList');
+        const errorMessage = document.getElementById('errorMessage');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        searchButton.addEventListener('click', async () => {
+            const address = addressInput.value.trim();
+            urlList.innerHTML = ''; // Clear previous results
+            errorMessage.textContent = ''; // Clear previous errors
+            
+            if (address === '') {
+                errorMessage.textContent = 'Please enter an address.';
+                return;
+            }
+
+            loadingSpinner.style.display = 'block'; // Show spinner
+            searchButton.disabled = true; // Disable button during search
+
+            try {
+                // This path `/api/get-realestate-url` is what Vercel understands
+                const backendUrl = '/api/get-realestate-url'; 
+
+                const response = await fetch(backendUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ address: address }) // Send address in the request body
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json(); 
+                    throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json(); 
+
+                if (data.url) {
+                    const finalUrl = data.url;
+
+                    const listItem = document.createElement('li');
+                    const link = document.createElement('a');
+                    link.href = finalUrl;
+                    link.textContent = finalUrl;
+                    link.target = '_blank'; // Open in a new tab
+                    listItem.appendChild(link);
+                    urlList.appendChild(listItem);
+                } else {
+                    // This case should ideally be caught by the backend's 404 response
+                    urlList.innerHTML = '<li>No matching property found or insufficient data for URL generation.</li>';
+                }
+
+            } catch (error) {
+                console.error('Error fetching/parsing data:', error);
+                errorMessage.textContent = error.message || 'An unexpected error occurred. Please try again.';
+            } finally {
+                loadingSpinner.style.display = 'none'; // Hide spinner
+                searchButton.disabled = false; // Re-enable button
+            }
+        });
+    </script>
+</body>
+</html>
