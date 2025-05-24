@@ -8,6 +8,49 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/styles/main.css">
 
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
+
+        <div class="flex items-center w-full mb-8">
+            <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="searchButton" class="bg-gray-800 text-white px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Find property values</button>
+        </div>
+
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <p class="error-message" id="errorMessage"></p>
+
+        <div id="summaryData">
+            <div id="summaryPhotoWrapper"></div>
+            <div id="summaryTextContent"></div>
+        </div>
+
+        <div id="results">
+            <h2 class="mt-8">Estimated Values:</h2>
+            <div class="overflow-x-auto">
+                <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-sm text-gray-600 uppercase tracking-wider">
+                            <th class="py-3 px-4 border-b border-gray-200">Website</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Low</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Medium</th>
+                            <th class="py-3 px-4 border-b border-gray-200">High</th>
+                        </tr>
+                    </thead>
+                    <tbody id="estimatedValuesTableBody">
+                        </tbody>
+                    <tfoot id="estimatedValuesTableFoot" class="bg-gray-50 text-right text-gray-700 font-semibold">
+                        </tfoot>
+                </table>
+            </div>
+            <h2>Property Page Links</h2>
+            <ul id="urlList">
+                </ul>
+        </div>
+    </div>
+
     <script>
         const addressInput = document.getElementById('addressInput');
         const searchButton = document.getElementById('searchButton');
@@ -397,47 +440,5 @@
             }
         });
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete"></script>
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
-
-        <div class="flex items-center w-full mb-8">
-            <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="searchButton" class="bg-gray-800 text-white px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Find property values</button>
-        </div>
-
-        <div class="loading-spinner" id="loadingSpinner"></div>
-        <p class="error-message" id="errorMessage"></p>
-
-        <div id="summaryData">
-            <div id="summaryPhotoWrapper"></div>
-            <div id="summaryTextContent"></div>
-        </div>
-
-        <div id="results">
-            <h2 class="mt-8">Estimated Values:</h2>
-            <div class="overflow-x-auto">
-                <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
-                    <thead>
-                        <tr class="bg-gray-100 text-left text-sm text-gray-600 uppercase tracking-wider">
-                            <th class="py-3 px-4 border-b border-gray-200">Website</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Low</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Medium</th>
-                            <th class="py-3 px-4 border-b border-gray-200">High</th>
-                        </tr>
-                    </thead>
-                    <tbody id="estimatedValuesTableBody">
-                    </tbody>
-                    <tfoot id="estimatedValuesTableFoot" class="bg-gray-50 text-right text-gray-700 font-semibold">
-                    </tfoot>
-                </table>
-            </div>
-            <h2>Property Page Links</h2>
-            <ul id="urlList">
-            </ul>
-        </div>
-    </div>
 </body>
 </html>
