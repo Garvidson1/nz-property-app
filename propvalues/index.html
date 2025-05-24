@@ -85,13 +85,10 @@
                 link.rel = 'noopener noreferrer';
                 listItem.appendChild(link);
 
-                // This part usually shows data other than estimated values,
-                // but we are now handling estimatedValues in the table below.
-                // Keep this for consistency if other sites have other non-estimated value data.
                 if (scrapedData && Object.keys(scrapedData).length > 0 && !scrapedData.estimatedValues) {
                     const dataDiv = document.createElement('div');
                     dataDiv.className = 'scraped-data';
-                    let dataText = ''; // You can populate this with other data from future scrapers if needed
+                    let dataText = '';
                     dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>');
                     if (dataText.trim()) {
                         listItem.appendChild(dataDiv);
@@ -106,7 +103,7 @@
             row.className = 'text-sm text-gray-800';
 
             const websiteCell = row.insertCell();
-            if (url && url !== 'N/A' && url !== 'No direct link found.' && !url.includes("Error")) { // Check for valid URL before creating link
+            if (url && url !== 'N/A' && url !== 'No direct link found.' && !url.includes("Error")) {
                 const link = document.createElement('a');
                 link.href = url;
                 link.textContent = siteName;
@@ -131,7 +128,7 @@
                     errorSpan.style.color = 'red';
                     errorSpan.style.marginLeft = '5px';
                     websiteCell.appendChild(errorSpan);
-                } else if (url && url.includes("Error")) { // Specifically handle URL errors
+                } else if (url && url.includes("Error")) {
                     const errorSpan = document.createElement('span');
                     errorSpan.textContent = ` (Error retrieving URL)`;
                     errorSpan.style.color = 'red';
@@ -158,13 +155,13 @@
             const address = addressInput.value.trim();
             urlList.innerHTML = '';
             errorMessage.textContent = '';
-            estimatedValuesTableBody.innerHTML = ''; // Clear previous table rows
-            estimatedValuesTableFoot.innerHTML = ''; // Clear previous average
+            estimatedValuesTableBody.innerHTML = '';
+            estimatedValuesTableFoot.innerHTML = '';
 
             summaryDataContainer.style.display = 'none';
             summaryPhotoWrapper.innerHTML = '';
             summaryTextContent.innerHTML = '';
-            resultsSection.style.display = 'none'; // Keep hidden until data is ready
+            resultsSection.style.display = 'none';
 
             if (address === '') {
                 errorMessage.textContent = 'Please enter an address.';
@@ -175,9 +172,8 @@
             searchButton.disabled = true;
 
             const apiEndpoints = [
-                // RealEstate.co.nz is special because it has two steps: get URL then scrape values
                 { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' },
-                { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' },
+                { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' }, // <-- ADD THIS LINE
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
                 { siteName: "QV.co.nz", url: '/api/get-qv-url' },
@@ -185,9 +181,8 @@
             ];
 
             const fetchPromises = apiEndpoints.map(apiInfo =>
-                (async () => { // Use an IIFE (Immediately Invoked Function Expression) to handle async logic per endpoint
+                (async () => {
                     try {
-                        // First, fetch the URL
                         const urlResponse = await fetch(apiInfo.url, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -201,17 +196,16 @@
 
                         const urlData = await urlResponse.json();
                         let finalUrl = urlData.url;
-                        let combinedScrapedData = urlData.data || {}; // Initialize with any data from URL endpoint (e.g., empty)
+                        let combinedScrapedData = urlData.data || {};
 
-                        // If it's RealEstate.co.nz AND we got a valid URL, make a second call to scrape values
-                        if (apiInfo.siteName === "RealEstate.co.nz" && finalUrl && !finalUrl.includes("No direct link found.")) {
+                        // Conditional scraping for estimated values if scrapeValuesUrl is defined
+                        if (apiInfo.scrapeValuesUrl && finalUrl && !finalUrl.includes("No direct link found.")) {
                             try {
                                 const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ url: finalUrl })
                                 });
-
                                 if (scrapeResponse.ok) {
                                     const scrapeData = await scrapeResponse.json();
                                     combinedScrapedData.estimatedValues = scrapeData.estimatedValues;
@@ -225,8 +219,7 @@
                                 combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
                             }
                         }
-                        // For other sites, if they were to provide estimated values directly, they would be in urlData.data
-                        // For now, only PropertyValue.co.nz provides 'data' (summary info)
+                        // For other sites like PropertyValue.co.nz that might return 'data' directly
                         if (apiInfo.siteName === "PropertyValue.co.nz" && urlData.data) {
                             combinedScrapedData = { ...combinedScrapedData, ...urlData.data };
                         }
@@ -236,7 +229,7 @@
                     } catch (error) {
                         return { siteName: apiInfo.siteName, error: error.message };
                     }
-                })() // Invoke the IIFE
+                })()
             );
 
             try {
@@ -250,7 +243,6 @@
                     if (promiseResult.status === 'fulfilled') {
                         const { siteName, result, scrapedData } = promiseResult.value;
 
-                        // Handle PropertyValue.co.nz summary data (photo and last sold, capital etc)
                         if (siteName === "PropertyValue.co.nz" && scrapedData) {
                             let summaryHtml = '';
                             if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
@@ -288,13 +280,10 @@
                             addLinkToUI(siteName, "No direct link found.", true);
                         }
 
-                        // Display estimated values in the table
-                        // Check if estimatedValues exists and is not null/undefined
                         if (scrapedData && scrapedData.estimatedValues) {
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
 
-                            // Add to medium values for average calculation
                             if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
                                 const numericValue = parseFloat(scrapedData.estimatedValues.medium.replace(/[^0-9.-]+/g,""));
                                 if (!isNaN(numericValue)) {
@@ -302,19 +291,17 @@
                                 }
                             }
                         } else {
-                            // If no estimated values, display N/A
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
                         }
 
-                    } else { // promiseResult.status === 'rejected'
+                    } else {
                         const { siteName, error } = promiseResult.reason || {};
                         addLinkToUI(siteName, error || "Unknown error occurred.", true);
                         displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, error || "Unknown error occurred.");
                     }
                 });
 
-                // Calculate and display average if there are medium values
                 if (mediumValues.length > 0) {
                     const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
                     const averageMedium = totalMedium / mediumValues.length;
