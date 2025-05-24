@@ -63,6 +63,28 @@
         const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
         const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
 
+        // Helper function to convert currency string to number
+        function parseCurrencyToNumber(currencyString) {
+            if (!currencyString || typeof currencyString !== 'string') {
+                return NaN;
+            }
+
+            // Remove dollar signs, commas, and trim whitespace
+            let cleanedString = currencyString.replace(/[\$,]/g, '').trim();
+
+            let numericValue = parseFloat(cleanedString);
+
+            // Handle 'M' for million, 'K' for thousand
+            if (cleanedString.endsWith('M')) {
+                numericValue *= 1000000;
+            } else if (cleanedString.endsWith('K')) {
+                numericValue *= 1000;
+            }
+
+            return numericValue;
+        }
+
+
         function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
             const listItem = document.createElement('li');
 
@@ -173,7 +195,7 @@
 
             const apiEndpoints = [
                 { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' },
-                { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' }, // <-- ADD THIS LINE
+                { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' },
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
                 { siteName: "QV.co.nz", url: '/api/get-qv-url' },
@@ -284,8 +306,9 @@
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
 
+                            // Modified: Use the new parseCurrencyToNumber function
                             if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
-                                const numericValue = parseFloat(scrapedData.estimatedValues.medium.replace(/[^0-9.-]+/g,""));
+                                const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium); // Use the new function
                                 if (!isNaN(numericValue)) {
                                     mediumValues.push(numericValue);
                                 }
@@ -313,10 +336,11 @@
                     avgLabelCell.className = 'py-3 px-4 text-right font-bold';
 
                     const avgValueCell = footerRow.insertCell();
-                    avgValueCell.textContent = `$${averageMedium.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+                    // Format the average back to a currency string with millions/thousands
+                    avgValueCell.textContent = `$${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
                     avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
 
-                    footerRow.insertCell().textContent = '';
+                    footerRow.insertCell().textContent = ''; // Empty cell for High column
                 }
 
                 if (pvDataFound) {
