@@ -38,7 +38,8 @@ module.exports = async (req, res) => {
         // --- Medium Value (HomesEstimate) ---
         const mediumValueSpan = $('span.display_price.large');
         if (mediumValueSpan.length > 0) {
-            scrapedValues.medium = mediumValueSpan.text().trim();
+            // Prepend '$' to the value if it's found
+            scrapedValues.medium = '$' + mediumValueSpan.text().trim();
             debugLog.push(`Found Medium Value: ${scrapedValues.medium}`);
         } else {
             debugLog.push('Medium value (span.display_price.large) element not found.');
@@ -48,8 +49,9 @@ module.exports = async (req, res) => {
         const rangePrices = $('div.estimate_range_price span.display_price');
 
         if (rangePrices.length >= 2) {
-            scrapedValues.low = rangePrices.eq(0).text().trim(); // First .display_price in the range
-            scrapedValues.high = rangePrices.eq(1).text().trim(); // Second .display_price in the range
+            // Prepend '$' to the values if they are found
+            scrapedValues.low = '$' + rangePrices.eq(0).text().trim(); // First .display_price in the range
+            scrapedValues.high = '$' + rangePrices.eq(1).text().trim(); // Second .display_price in the range
             debugLog.push(`Found Low Value: ${scrapedValues.low}`);
             debugLog.push(`Found High Value: ${scrapedValues.high}`);
         } else if (rangePrices.length > 0) {
