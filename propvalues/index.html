@@ -98,31 +98,35 @@
             urlList.appendChild(listItem);
         }
 
-        // New function to display estimated values in the table, now with urlError parameter
+        // Updated function to display estimated values in the table, now robustly handling urlError
         function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
             const row = estimatedValuesTableBody.insertRow();
             row.className = 'text-sm text-gray-800';
 
             const websiteCell = row.insertCell();
+            // Always display site name
+            websiteCell.textContent = siteName;
+
+            // If there's a valid URL, append it as a link
             if (url && url !== 'N/A' && url !== 'No direct link found.') {
                 const link = document.createElement('a');
                 link.href = url;
-                link.textContent = siteName;
+                link.textContent = ` (${url.substring(0, 30)}...)`; // Show a truncated URL as clickable text
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
-                link.className = 'text-blue-700 hover:underline font-medium'; // Tailwind classes for link styling
+                link.className = 'text-blue-700 hover:underline font-medium ml-2'; // Tailwind classes for link styling
                 websiteCell.appendChild(link);
-            } else {
-                // If there's a URL error, display site name and the error in red
-                websiteCell.textContent = siteName;
-                if (urlError) {
-                    const errorSpan = document.createElement('span');
-                    errorSpan.textContent = ` (${urlError})`;
-                    errorSpan.style.color = 'red'; // Make the error text red
-                    errorSpan.style.marginLeft = '5px'; // Add some space
-                    websiteCell.appendChild(errorSpan);
-                }
             }
+
+            // If there's a URL error, append it in red
+            if (urlError) {
+                const errorSpan = document.createElement('span');
+                errorSpan.textContent = ` (${urlError})`;
+                errorSpan.style.color = 'red'; // Make the error text red
+                errorSpan.style.marginLeft = '5px'; // Add some space
+                websiteCell.appendChild(errorSpan);
+            }
+            websiteCell.className += ' py-2 px-4 border-b border-gray-200'; // Apply common cell classes
 
             const lowCell = row.insertCell();
             lowCell.textContent = estimatedValues.low || 'N/A';
@@ -135,9 +139,6 @@
             const highCell = row.insertCell();
             highCell.textContent = estimatedValues.high || 'N/A';
             highCell.className = 'py-2 px-4 border-b border-gray-200';
-
-            // Add classes to all cells
-            websiteCell.className += ' py-2 px-4 border-b border-gray-200';
         }
 
         searchButton.addEventListener('click', async () => {
@@ -241,7 +242,7 @@
 
                         // Handle Estimated Values for the new table
                         if (scrapedData && scrapedData.estimatedValues) {
-                            displayEstimatedValues(siteName, result, scrapedData.estimatedValues); // Pass URL here, no urlError for fulfilled
+                            displayEstimatedValues(siteName, result, scrapedData.estimatedValues);
                             // Clean and store medium value for average calculation
                             if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A') {
                                 const numericValue = parseFloat(scrapedData.estimatedValues.medium.replace(/[^0-9.-]+/g,""));
@@ -250,15 +251,17 @@
                                 }
                             }
                         } else {
-                             // If no estimated values, display N/A in the table
-                            displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' });
+                             // If no estimated values, display N/A in the table and provide the URL error if it exists
+                             // Use result as urlError if result indicates no link (e.g., "No direct link found.")
+                            const errorForTable = result && result.includes("No direct link found.") ? result : null;
+                            displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
                         }
 
                     } else { // promiseResult.status === 'rejected'
                         const { siteName, error } = promiseResult.reason || {};
                         addLinkToUI(siteName, error || "Unknown error occurred.", true);
                         // Also add an entry to the estimated values table with the error
-                        displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, error || "Unknown error occurred."); // Pass urlError here
+                        displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, error || "Unknown error occurred.");
                     }
                 });
 
