@@ -77,20 +77,41 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); /* Hover shadow */
             transform: translateY(-2px); /* hover:translate-y-0.5 */
         }
-        /* New styling for the summary data section */
+        /* Styling for the new summary data section with image */
         #summaryData {
-            margin-top: 2rem; /* mt-8 */
+            margin-top: 2rem;
             padding: 15px 20px;
-            background-color: #fff9e6; /* Light yellow background for highlight */
-            border: 1px solid #ffe0b2; /* Orange-ish border */
+            background-color: #fff9e6;
+            border: 1px solid #ffe0b2;
             border-radius: 8px;
-            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+            display: flex; /* Enable flexbox */
+            align-items: center; /* Vertically align items */
+            gap: 15px; /* Space between image and text */
+            flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        }
+        #summaryPhotoWrapper {
+            flex-shrink: 0; /* Prevent image wrapper from shrinking */
+            width: 100px; /* Fixed width for the image */
+            height: 75px; /* Fixed height (e.g., 4:3 aspect ratio) */
+            overflow: hidden; /* Hide parts of image that go outside bounds */
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        #summaryPhotoWrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Cover the area, cropping if necessary */
+            display: block; /* Remove extra space below image */
+        }
+        #summaryTextContent {
+            flex-grow: 1; /* Allow text content to take remaining space */
             font-size: 1.1rem;
             font-weight: 600;
-            color: #6a4a00; /* Darker yellow/brown text */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-            margin-bottom: 2rem; /* Space below this section */
+            color: #6a4a00;
         }
+
 
         #results {
             margin-top: 2rem; /* mt-8 */
@@ -181,7 +202,10 @@
         <div class="loading-spinner" id="loadingSpinner"></div>
         <p class="error-message" id="errorMessage"></p>
 
-        <div id="summaryData"></div> 
+        <div id="summaryData">
+            <div id="summaryPhotoWrapper"></div>
+            <div id="summaryTextContent"></div>
+        </div> 
 
         <div id="results">
             <h2>Generated Links:</h2>
@@ -196,13 +220,14 @@
         const urlList = document.getElementById('urlList');
         const errorMessage = document.getElementById('errorMessage');
         const loadingSpinner = document.getElementById('loadingSpinner');
-        const summaryDataContainer = document.getElementById('summaryData'); // Get the new container
+        const summaryDataContainer = document.getElementById('summaryData');
+        const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper'); // Get photo container
+        const summaryTextContent = document.getElementById('summaryTextContent'); // Get text container
 
         // Function to add a link or error message, and potentially scraped data to the list
-        // Note: For PropertyValue.co.nz, 'scrapedData' for lastSold is now handled by summaryDataContainer
         function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
             const listItem = document.createElement('li');
-            
+
             const nameSpan = document.createElement('span');
             nameSpan.className = 'site-name'; 
             nameSpan.textContent = siteName;
@@ -222,19 +247,16 @@
                 link.rel = 'noopener noreferrer'; 
                 listItem.appendChild(link);
 
-                // This block is now generally for additional data *other than* summary data moved to top
-                // For PropertyValue.co.nz, lastSold is handled by summaryDataContainer
+                // This block is for additional data that stays with the link
+                // (lastSold and photo are now handled by summaryDataContainer)
                 if (scrapedData && siteName !== "PropertyValue.co.nz" && Object.keys(scrapedData).length > 0) {
                     const dataDiv = document.createElement('div');
                     dataDiv.className = 'scraped-data';
                     let dataText = '';
-                    // Example of how you'd display other scraped data if added later for other sites
+                    // Example: if you add more data to RealEstate.co.nz in the future
                     // if (scrapedData.scrapedAddress) { dataText += `Address: ${scrapedData.scrapedAddress}\n`; }
-                    // if (scrapedData.propertyType && scrapedData.propertyType !== 'N/A') { dataText += `Type: ${scrapedData.propertyType}\n`; }
-                    // if (scrapedData.bedrooms && scrapedData.bedrooms !== 'N/A') { dataText += `Beds: ${scrapedData.bedrooms}\n`; }
-                    // if (scrapedData.bathrooms && scrapedData.bathrooms !== 'N/A') { dataText += `Baths: ${scrapedData.bathrooms}\n`; }
                     dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>'); 
-                    if (dataText.trim()) { // Only append if there's actual data to show
+                    if (dataText.trim()) { 
                         listItem.appendChild(dataDiv);
                     }
                 }
@@ -246,7 +268,9 @@
             const address = addressInput.value.trim();
             urlList.innerHTML = ''; // Clear previous results
             errorMessage.textContent = ''; // Clear previous errors
-            summaryDataContainer.innerHTML = ''; // Clear previous summary data
+            summaryDataContainer.style.display = 'none'; // Hide summary container initially
+            summaryPhotoWrapper.innerHTML = ''; // Clear previous photo
+            summaryTextContent.innerHTML = ''; // Clear previous text
 
             if (address === '') {
                 errorMessage.textContent = 'Please enter an address.';
@@ -280,7 +304,6 @@
                         throw new Error(errorData.error || `HTTP error! Status: ${response.status} from ${apiInfo.siteName}`);
                     }
                 })
-                // Ensure 'data.data' is captured here, which holds our scraped info
                 .then(data => ({ siteName: apiInfo.siteName, result: data.url, scrapedData: data.data })) 
                 .catch(error => ({ siteName: apiInfo.siteName, error: error.message })) 
             );
@@ -289,15 +312,31 @@
                 const results = await Promise.allSettled(fetchPromises);
 
                 let anyLinkGenerated = false;
+                let pvDataFound = false; // Flag to check if PropertyValue data was set
+
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
                         const { siteName, result, scrapedData } = promiseResult.value; 
 
-                        if (siteName === "PropertyValue.co.nz" && scrapedData && scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
-                            // Display Last Sold data in the summary container
-                            summaryDataContainer.textContent = `Property Value: ${scrapedData.lastSold}`;
+                        if (siteName === "PropertyValue.co.nz" && scrapedData) {
+                            let lastSoldText = '';
+                            if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
+                                lastSoldText = `Last Sold: ${scrapedData.lastSold}`;
+                            } else {
+                                lastSoldText = `Last Sold: ${scrapedData.lastSold}`; // Show N/A or Not Found
+                            }
+                            summaryTextContent.textContent = `Property Value: ${lastSoldText}`;
+                            pvDataFound = true; // Set flag
+
+                            // Display photo if available
+                            if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A' && scrapedData.propertyPhotoSrc !== 'Not Found on Page') {
+                                const img = document.createElement('img');
+                                img.src = scrapedData.propertyPhotoSrc;
+                                img.alt = 'Property Photo';
+                                summaryPhotoWrapper.appendChild(img);
+                            }
                         }
-                        
+
                         if (result) {
                             addLinkToUI(siteName, result, false, scrapedData); 
                             anyLinkGenerated = true;
@@ -310,8 +349,16 @@
                     }
                 });
 
-                if (!anyLinkGenerated && summaryDataContainer.textContent === '') { // Also check if summary data was set
-                    errorMessage.textContent = 'No property links could be generated for the given address from any site.';
+                // Only show the summary container if PropertyValue data was found
+                if (pvDataFound) {
+                    summaryDataContainer.style.display = 'flex'; // Show it
+                } else {
+                    // If no PV data, ensure the summary section doesn't take up space
+                    summaryDataContainer.style.display = 'none'; 
+                }
+
+                if (!anyLinkGenerated && !pvDataFound) { // Also check if PV data was set
+                    errorMessage.textContent = 'No property links or summary data could be generated for the given address from any site.';
                 }
 
             } catch (error) {
