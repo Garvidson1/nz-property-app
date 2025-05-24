@@ -8,6 +8,43 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/styles/main.css">
 
+    <script>
+        let autocomplete; // Declare autocomplete globally or in initAutocomplete's scope
+
+        function initAutocomplete() {
+            // Ensure addressInput element exists before trying to initialize Autocomplete
+            const addressInput = document.getElementById('addressInput');
+            if (addressInput) {
+                autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                    types: ['address'], // Restrict to address results
+                    componentRestrictions: { 'country': ['nz'] } // Restrict to New Zealand addresses
+                });
+
+                // Add a listener to populate the address input when a place is selected
+                autocomplete.addListener('place_changed', onPlaceChanged);
+            } else {
+                console.error("Address input element not found. Autocomplete could not be initialized.");
+            }
+        }
+
+        // The onPlaceChanged function also needs to be globally accessible if called by initAutocomplete
+        function onPlaceChanged() {
+            const place = autocomplete.getPlace();
+
+            if (!place.geometry) {
+                errorMessage.textContent = "No details available for input: '" + place.name + "'";
+                return;
+            }
+
+            if (place.formatted_address) {
+                document.getElementById('addressInput').value = place.formatted_address;
+                document.getElementById('errorMessage').textContent = '';
+            } else {
+                document.getElementById('errorMessage').textContent = "Could not retrieve formatted address for the selected place.";
+            }
+        }
+    </script>
+
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete"></script>
 </head>
 <body>
@@ -40,404 +77,355 @@
                         </tr>
                     </thead>
                     <tbody id="estimatedValuesTableBody">
-                        </tbody>
+                    </tbody>
                     <tfoot id="estimatedValuesTableFoot" class="bg-gray-50 text-right text-gray-700 font-semibold">
-                        </tfoot>
+                    </tfoot>
                 </table>
             </div>
             <h2>Property Page Links</h2>
             <ul id="urlList">
-                </ul>
+            </ul>
         </div>
     </div>
 
     <script>
-        const addressInput = document.getElementById('addressInput');
-        const searchButton = document.getElementById('searchButton');
-        const urlList = document.getElementById('urlList');
-        const errorMessage = document.getElementById('errorMessage');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const summaryDataContainer = document.getElementById('summaryData');
-        const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper');
-        const summaryTextContent = document.getElementById('summaryTextContent');
-        const resultsSection = document.getElementById('results');
-        const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
-        const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
+        document.addEventListener('DOMContentLoaded', () => {
+            const addressInput = document.getElementById('addressInput');
+            const searchButton = document.getElementById('searchButton');
+            const urlList = document.getElementById('urlList');
+            const errorMessage = document.getElementById('errorMessage');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const summaryDataContainer = document.getElementById('summaryData');
+            const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper');
+            const summaryTextContent = document.getElementById('summaryTextContent');
+            const resultsSection = document.getElementById('results');
+            const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
+            const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
 
-        // Google Places Autocomplete variables and functions
-        let autocomplete;
+            // Helper function to convert currency string to number
+            function parseCurrencyToNumber(currencyString) {
+                if (!currencyString || typeof currencyString !== 'string') {
+                    return NaN;
+                }
 
-        function initAutocomplete() {
-            autocomplete = new google.maps.places.Autocomplete(addressInput, {
-                types: ['address'], // Restrict to address results
-                componentRestrictions: { 'country': ['nz'] } // Restrict to New Zealand addresses
-            });
+                let cleanedString = currencyString.replace(/[\$,]/g, '').trim();
+                let numericValue = parseFloat(cleanedString);
 
-            // Add a listener to populate the address input when a place is selected
-            autocomplete.addListener('place_changed', onPlaceChanged);
-        }
-
-        function onPlaceChanged() {
-            const place = autocomplete.getPlace();
-
-            if (!place.geometry) {
-                // User entered the name of a Place that was not suggested and pressed the Enter key,
-                // or the Place Details request failed.
-                errorMessage.textContent = "No details available for input: '" + place.name + "'";
-                return;
+                if (cleanedString.endsWith('M')) {
+                    numericValue *= 1000000;
+                } else if (cleanedString.endsWith('K')) {
+                    numericValue *= 1000;
+                }
+                return numericValue;
             }
 
-            // Set the address input value to the selected formatted address
-            if (place.formatted_address) {
-                addressInput.value = place.formatted_address;
-                errorMessage.textContent = ''; // Clear any previous error
-                // Optionally, trigger the search automatically if you want
-                // searchButton.click();
-            } else {
-                errorMessage.textContent = "Could not retrieve formatted address for the selected place.";
-            }
-        }
+            function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
+                const listItem = document.createElement('li');
 
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'site-name';
+                nameSpan.textContent = siteName;
+                listItem.appendChild(nameSpan);
 
-        // Helper function to convert currency string to number
-        function parseCurrencyToNumber(currencyString) {
-            if (!currencyString || typeof currencyString !== 'string') {
-                return NaN;
-            }
+                if (isError) {
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'no-link';
+                    textSpan.textContent = urlOrError;
+                    textSpan.style.color = 'red';
+                    listItem.appendChild(textSpan);
+                } else {
+                    const link = document.createElement('a');
+                    link.href = urlOrError;
+                    link.textContent = urlOrError;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    listItem.appendChild(link);
 
-            // Remove dollar signs, commas, and trim whitespace
-            let cleanedString = currencyString.replace(/[\$,]/g, '').trim();
-
-            let numericValue = parseFloat(cleanedString);
-
-            // Handle 'M' for million, 'K' for thousand
-            if (cleanedString.endsWith('M')) {
-                numericValue *= 1000000;
-            } else if (cleanedString.endsWith('K')) {
-                numericValue *= 1000;
-            }
-
-            return numericValue;
-        }
-
-
-        function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
-            const listItem = document.createElement('li');
-
-            const nameSpan = document.createElement('span');
-            nameSpan.className = 'site-name';
-            nameSpan.textContent = siteName;
-            listItem.appendChild(nameSpan);
-
-            if (isError) {
-                const textSpan = document.createElement('span');
-                textSpan.className = 'no-link';
-                textSpan.textContent = urlOrError;
-                textSpan.style.color = 'red';
-                listItem.appendChild(textSpan);
-            } else {
-                const link = document.createElement('a');
-                link.href = urlOrError;
-                link.textContent = urlOrError;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                listItem.appendChild(link);
-
-                if (scrapedData && Object.keys(scrapedData).length > 0 && !scrapedData.estimatedValues) {
-                    const dataDiv = document.createElement('div');
-                    dataDiv.className = 'scraped-data';
-                    let dataText = '';
-                    dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>');
-                    if (dataText.trim()) {
-                        listItem.appendChild(dataDiv);
+                    if (scrapedData && Object.keys(scrapedData).length > 0 && !scrapedData.estimatedValues) {
+                        const dataDiv = document.createElement('div');
+                        dataDiv.className = 'scraped-data';
+                        let dataText = '';
+                        dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>');
+                        if (dataText.trim()) {
+                            listItem.appendChild(dataDiv);
+                        }
                     }
                 }
+                urlList.appendChild(listItem);
             }
-            urlList.appendChild(listItem);
-        }
 
-        function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
-            const row = estimatedValuesTableBody.insertRow();
-            row.className = 'text-sm text-gray-800';
+            function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
+                const row = estimatedValuesTableBody.insertRow();
+                row.className = 'text-sm text-gray-800';
 
-            const websiteCell = row.insertCell();
-            if (url && url !== 'N/A' && url !== 'No direct link found.' && !url.includes("Error")) {
-                const link = document.createElement('a');
-                link.href = url;
-                link.textContent = siteName;
-                link.target = '_blank';
-                link.rel = 'noopener noreferrer';
-                link.className = 'text-blue-700 hover:underline font-medium';
-                websiteCell.appendChild(link);
+                const websiteCell = row.insertCell();
+                if (url && url !== 'N/A' && url !== 'No direct link found.' && !url.includes("Error")) {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.textContent = siteName;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'text-blue-700 hover:underline font-medium';
+                    websiteCell.appendChild(link);
 
-                if (urlError) {
-                    const errorSpan = document.createElement('span');
-                    errorSpan.textContent = ` (${urlError})`;
-                    errorSpan.style.color = 'red';
-                    errorSpan.style.marginLeft = '5px';
-                    websiteCell.appendChild(errorSpan);
+                    if (urlError) {
+                        const errorSpan = document.createElement('span');
+                        errorSpan.textContent = ` (${urlError})`;
+                        errorSpan.style.color = 'red';
+                        errorSpan.style.marginLeft = '5px';
+                        websiteCell.appendChild(errorSpan);
+                    }
+
+                } else {
+                    websiteCell.textContent = siteName;
+                    if (urlError) {
+                        const errorSpan = document.createElement('span');
+                        errorSpan.textContent = ` (${urlError})`;
+                        errorSpan.style.color = 'red';
+                        errorSpan.style.marginLeft = '5px';
+                        websiteCell.appendChild(errorSpan);
+                    } else if (url && url.includes("Error")) {
+                        const errorSpan = document.createElement('span');
+                        errorSpan.textContent = ` (Error retrieving URL)`;
+                        errorSpan.style.color = 'red';
+                        errorSpan.style.marginLeft = '5px';
+                        websiteCell.appendChild(errorSpan);
+                    }
+                }
+                websiteCell.className += ' py-2 px-4 border-b border-gray-200';
+
+                const lowCell = row.insertCell();
+                lowCell.textContent = estimatedValues.low || 'N/A';
+                lowCell.className = 'py-2 px-4 border-b border-gray-200';
+
+                const mediumCell = row.insertCell();
+                mediumCell.textContent = estimatedValues.medium || 'N/A';
+                mediumCell.className = 'py-2 px-4 border-b border-gray-200';
+
+                const highCell = row.insertCell();
+                highCell.textContent = estimatedValues.high || 'N/A';
+                highCell.className = 'py-2 px-4 border-b border-gray-200';
+            }
+
+            searchButton.addEventListener('click', async () => {
+                const address = addressInput.value.trim();
+                urlList.innerHTML = '';
+                errorMessage.textContent = '';
+                estimatedValuesTableBody.innerHTML = '';
+                estimatedValuesTableFoot.innerHTML = '';
+
+                summaryDataContainer.style.display = 'none';
+                summaryPhotoWrapper.innerHTML = '';
+                summaryTextContent.innerHTML = '';
+                resultsSection.style.display = 'none';
+
+                if (address === '') {
+                    errorMessage.textContent = 'Please enter an address.';
+                    return;
                 }
 
-            } else {
-                websiteCell.textContent = siteName;
-                if (urlError) {
-                    const errorSpan = document.createElement('span');
-                    errorSpan.textContent = ` (${urlError})`;
-                    errorSpan.style.color = 'red';
-                    errorSpan.style.marginLeft = '5px';
-                    websiteCell.appendChild(errorSpan);
-                } else if (url && url.includes("Error")) {
-                    const errorSpan = document.createElement('span');
-                    errorSpan.textContent = ` (Error retrieving URL)`;
-                    errorSpan.style.color = 'red';
-                    errorSpan.style.marginLeft = '5px';
-                    websiteCell.appendChild(errorSpan);
-                }
-            }
-            websiteCell.className += ' py-2 px-4 border-b border-gray-200';
+                loadingSpinner.style.display = 'block';
+                searchButton.disabled = true;
 
-            const lowCell = row.insertCell();
-            lowCell.textContent = estimatedValues.low || 'N/A';
-            lowCell.className = 'py-2 px-4 border-b border-gray-200';
+                const apiEndpoints = [
+                    { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' },
+                    { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' },
+                    { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' },
+                    { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
+                    { siteName: "QV.co.nz", url: '/api/get-qv-url' },
+                    { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url', scrapeValuesUrl: '/api/scrape-propertyvalue-values' }
+                ];
 
-            const mediumCell = row.insertCell();
-            mediumCell.textContent = estimatedValues.medium || 'N/A';
-            mediumCell.className = 'py-2 px-4 border-b border-gray-200';
+                const fetchPromises = apiEndpoints.map(apiInfo =>
+                    (async () => {
+                        try {
+                            const urlResponse = await fetch(apiInfo.url, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ address: address })
+                            });
 
-            const highCell = row.insertCell();
-            highCell.textContent = estimatedValues.high || 'N/A';
-            highCell.className = 'py-2 px-4 border-b border-gray-200';
-        }
+                            if (!urlResponse.ok) {
+                                const errorData = await urlResponse.json().catch(() => ({ error: `Failed to parse error from ${apiInfo.siteName} URL API` }));
+                                throw new Error(errorData.error || `HTTP error! Status: ${urlResponse.status} from ${apiInfo.siteName} URL API`);
+                            }
 
-        searchButton.addEventListener('click', async () => {
-            const address = addressInput.value.trim();
-            urlList.innerHTML = '';
-            errorMessage.textContent = '';
-            estimatedValuesTableBody.innerHTML = '';
-            estimatedValuesTableFoot.innerHTML = '';
+                            const urlData = await urlResponse.json();
+                            let finalUrl = urlData.url;
+                            let combinedScrapedData = urlData.data || {};
 
-            summaryDataContainer.style.display = 'none';
-            summaryPhotoWrapper.innerHTML = '';
-            summaryTextContent.innerHTML = '';
-            resultsSection.style.display = 'none';
-
-            if (address === '') {
-                errorMessage.textContent = 'Please enter an address.';
-                return;
-            }
-
-            loadingSpinner.style.display = 'block';
-            searchButton.disabled = true;
-
-            const apiEndpoints = [
-                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' },
-                { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' },
-                { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' },
-                { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' }, // Note: No scrapeValuesUrl here, will copy from Homes.co.nz
-                { siteName: "QV.co.nz", url: '/api/get-qv-url' },
-                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url', scrapeValuesUrl: '/api/scrape-propertyvalue-values' }
-            ];
-
-            const fetchPromises = apiEndpoints.map(apiInfo =>
-                (async () => {
-                    try {
-                        const urlResponse = await fetch(apiInfo.url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ address: address })
-                        });
-
-                        if (!urlResponse.ok) {
-                            const errorData = await urlResponse.json().catch(() => ({ error: `Failed to parse error from ${apiInfo.siteName} URL API` }));
-                            throw new Error(errorData.error || `HTTP error! Status: ${urlResponse.status} from ${apiInfo.siteName} URL API`);
-                        }
-
-                        const urlData = await urlResponse.json();
-                        let finalUrl = urlData.url;
-                        let combinedScrapedData = urlData.data || {};
-
-                        // Conditional scraping for estimated values if scrapeValuesUrl is defined
-                        if (apiInfo.scrapeValuesUrl && finalUrl && !finalUrl.includes("No direct link found.")) {
-                            try {
-                                const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ url: finalUrl })
-                                });
-                                if (scrapeResponse.ok) {
-                                    const scrapeData = await scrapeResponse.json();
-                                    combinedScrapedData.estimatedValues = scrapeData.estimatedValues;
-                                } else {
-                                    const scrapeErrorData = await scrapeResponse.json().catch(() => ({ error: `Failed to parse scrape error from ${apiInfo.siteName}` }));
-                                    console.error(`Failed to scrape ${apiInfo.siteName} values for ${finalUrl}:`, scrapeErrorData.error);
+                            if (apiInfo.scrapeValuesUrl && finalUrl && !finalUrl.includes("No direct link found.")) {
+                                try {
+                                    const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ url: finalUrl })
+                                    });
+                                    if (scrapeResponse.ok) {
+                                        const scrapeData = await scrapeResponse.json();
+                                        combinedScrapedData.estimatedValues = scrapeData.estimatedValues;
+                                    } else {
+                                        const scrapeErrorData = await scrapeResponse.json().catch(() => ({ error: `Failed to parse scrape error from ${apiInfo.siteName}` }));
+                                        console.error(`Failed to scrape ${apiInfo.siteName} values for ${finalUrl}:`, scrapeErrorData.error);
+                                        combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
+                                    }
+                                } catch (scrapeError) {
+                                    console.error(`Error during ${apiInfo.siteName} value scraping for ${finalUrl}:`, scrapeError);
                                     combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
                                 }
-                            } catch (scrapeError) {
-                                console.error(`Error during ${apiInfo.siteName} value scraping for ${finalUrl}:`, scrapeError);
-                                combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
                             }
+                            if (apiInfo.siteName === "PropertyValue.co.nz" && urlData.data) {
+                                combinedScrapedData = { ...combinedScrapedData, ...urlData.data };
+                            }
+
+                            return { siteName: apiInfo.siteName, result: finalUrl, scrapedData: combinedScrapedData };
+
+                        } catch (error) {
+                            return { siteName: apiInfo.siteName, error: error.message };
                         }
-                        // For other sites like PropertyValue.co.nz that might return 'data' directly
-                        // ENSURE THIS LOGIC IS STILL IN PLACE TO HANDLE THE SUMMARY DATA FROM PROPERTYVALUE.CO.NZ
-                        if (apiInfo.siteName === "PropertyValue.co.nz" && urlData.data) {
-                            combinedScrapedData = { ...combinedScrapedData, ...urlData.data };
-                        }
+                    })()
+                );
 
-                        return { siteName: apiInfo.siteName, result: finalUrl, scrapedData: combinedScrapedData };
+                try {
+                    const results = await Promise.allSettled(fetchPromises);
 
-                    } catch (error) {
-                        return { siteName: apiInfo.siteName, error: error.message };
-                    }
-                })()
-            );
+                    let anyLinkGenerated = false;
+                    let pvDataFound = false;
+                    let mediumValues = [];
+                    let homesEstimatedValues = null;
+                    let pvCapitalValueNumeric = NaN;
 
-            try {
-                const results = await Promise.allSettled(fetchPromises);
+                    results.forEach(promiseResult => {
+                        if (promiseResult.status === 'fulfilled') {
+                            const { siteName, result, scrapedData } = promiseResult.value;
 
-                let anyLinkGenerated = false;
-                let pvDataFound = false;
-                let mediumValues = [];
-                let homesEstimatedValues = null; // Variable to store Homes.co.nz values
-                let pvCapitalValueNumeric = NaN; // Initialize Capital Value variable
-
-                results.forEach(promiseResult => {
-                    if (promiseResult.status === 'fulfilled') {
-                        const { siteName, result, scrapedData } = promiseResult.value;
-
-                        // Store Homes.co.nz estimated values if available
-                        if (siteName === "Homes.co.nz" && scrapedData && scrapedData.estimatedValues) {
-                            homesEstimatedValues = scrapedData.estimatedValues;
-                        }
-
-                        // Apply Homes.co.nz values to TradeMe.co.nz
-                        if (siteName === "TradeMe.co.nz" && homesEstimatedValues) {
-                            scrapedData.estimatedValues = { ...homesEstimatedValues }; // Shallow copy
-                        }
-
-                        if (siteName === "PropertyValue.co.nz" && scrapedData) {
-                            let summaryHtml = '';
-                            if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
-                                summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
-                            } else {
-                                summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
+                            if (siteName === "Homes.co.nz" && scrapedData && scrapedData.estimatedValues) {
+                                homesEstimatedValues = scrapedData.estimatedValues;
                             }
 
-                            // Capture Capital Value as numeric
-                            if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
-                                summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
-                                pvCapitalValueNumeric = parseCurrencyToNumber(scrapedData.capitalValue);
-                            } else {
-                                summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
+                            if (siteName === "TradeMe.co.nz" && homesEstimatedValues) {
+                                scrapedData.estimatedValues = { ...homesEstimatedValues };
                             }
 
-                            if (scrapedData.landValue && scrapedData.landValue !== 'N/A' && scrapedData.landValue !== 'Not Found on Page') {
-                                summaryHtml += `<div class="property-value-detail"><strong>Land Value:</strong> ${scrapedData.landValue}</div>`;
-                            }
-                            if (scrapedData.improvementValue && scrapedData.improvementValue !== 'N/A' && scrapedData.improvementValue !== 'Not Found on Page') {
-                                summaryHtml += `<div class="property-value-detail"><strong>Improvement Value:</strong> ${scrapedData.improvementValue}</div>`;
-                            }
-                            if (scrapedData.valuationDate && scrapedData.valuationDate !== 'N/A' && scrapedData.valuationDate !== 'Not Found on Page') {
-                                summaryHtml += `<div class="property-value-detail"><strong>Valuation Date:</strong> ${scrapedData.valuationDate}</div>`;
-                            }
-                            summaryTextContent.innerHTML = summaryHtml;
-                            pvDataFound = true;
+                            if (siteName === "PropertyValue.co.nz" && scrapedData) {
+                                let summaryHtml = '';
+                                if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
+                                } else {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
+                                }
 
-                            if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A' && scrapedData.propertyPhotoSrc !== 'Not Found on Page') {
-                                const img = document.createElement('img');
-                                img.src = scrapedData.propertyPhotoSrc;
-                                img.alt = 'Property Photo';
-                                summaryPhotoWrapper.appendChild(img);
-                            }
-                        }
+                                if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
+                                    pvCapitalValueNumeric = parseCurrencyToNumber(scrapedData.capitalValue);
+                                } else {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
+                                }
 
-                        if (result) {
-                            addLinkToUI(siteName, result, false, scrapedData);
-                            anyLinkGenerated = true;
-                        } else {
-                            addLinkToUI(siteName, "No direct link found.", true);
-                        }
+                                if (scrapedData.landValue && scrapedData.landValue !== 'N/A' && scrapedData.landValue !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Land Value:</strong> ${scrapedData.landValue}</div>`;
+                                }
+                                if (scrapedData.improvementValue && scrapedData.improvementValue !== 'N/A' && scrapedData.improvementValue !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Improvement Value:</strong> ${scrapedData.improvementValue}</div>`;
+                                }
+                                if (scrapedData.valuationDate && scrapedData.valuationDate !== 'N/A' && scrapedData.valuationDate !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Valuation Date:</strong> ${scrapedData.valuationDate}</div>`;
+                                }
+                                summaryTextContent.innerHTML = summaryHtml;
+                                pvDataFound = true;
 
-                        if (scrapedData && scrapedData.estimatedValues) {
-                            const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
-                            displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
-
-                            // Use the new parseCurrencyToNumber function
-                            if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
-                                const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
-                                if (!isNaN(numericValue)) {
-                                    mediumValues.push(numericValue);
+                                if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A' && scrapedData.propertyPhotoSrc !== 'Not Found on Page') {
+                                    const img = document.createElement('img');
+                                    img.src = scrapedData.propertyPhotoSrc;
+                                    img.alt = 'Property Photo';
+                                    summaryPhotoWrapper.appendChild(img);
                                 }
                             }
+
+                            if (result) {
+                                addLinkToUI(siteName, result, false, scrapedData);
+                                anyLinkGenerated = true;
+                            } else {
+                                addLinkToUI(siteName, "No direct link found.", true);
+                            }
+
+                            if (scrapedData && scrapedData.estimatedValues) {
+                                const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
+                                displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
+
+                                if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
+                                    const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
+                                    if (!isNaN(numericValue)) {
+                                        mediumValues.push(numericValue);
+                                    }
+                                }
+                            } else {
+                                const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
+                                displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
+                            }
+
                         } else {
-                            const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
-                            displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
+                            const { siteName, error } = promiseResult.reason || {};
+                            addLinkToUI(siteName, error || "Unknown error occurred.", true);
+                            displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, error || "Unknown error occurred.");
+                        }
+                    });
+
+                    if (mediumValues.length > 0) {
+                        const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
+                        const averageMedium = totalMedium / mediumValues.length;
+
+                        const footerRow = estimatedValuesTableFoot.insertRow();
+                        const avgLabelCell = footerRow.insertCell();
+                        avgLabelCell.colSpan = 2;
+                        avgLabelCell.textContent = 'Average Medium Value:';
+                        avgLabelCell.className = 'py-3 px-4 text-right font-bold';
+
+                        const avgValueCell = footerRow.insertCell();
+                        let avgMediumText = `$${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+
+                        if (!isNaN(pvCapitalValueNumeric)) {
+                            const cvDifference = averageMedium - pvCapitalValueNumeric;
+                            let differenceText;
+                            const formattedDifference = Math.abs(cvDifference).toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                            if (cvDifference > 0) {
+                                differenceText = `$${formattedDifference} above CV`;
+                            } else if (cvDifference < 0) {
+                                differenceText = `$${formattedDifference} below CV`;
+                            } else {
+                                differenceText = `$0 difference from CV`;
+                            }
+                            avgMediumText += `<span class="text-xs font-normal text-gray-500 block">${differenceText}</span>`;
+                        } else {
+                            avgMediumText += `<span class="text-xs font-normal text-gray-500 block">(Capital Value not available for comparison)</span>`;
                         }
 
-                    } else {
-                        const { siteName, error } = promiseResult.reason || {};
-                        addLinkToUI(siteName, error || "Unknown error occurred.", true);
-                        displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, error || "Unknown error occurred.");
-                    }
-                });
+                        avgValueCell.innerHTML = avgMediumText;
+                        avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
 
-                if (mediumValues.length > 0) {
-                    const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
-                    const averageMedium = totalMedium / mediumValues.length;
-
-                    const footerRow = estimatedValuesTableFoot.insertRow();
-                    const avgLabelCell = footerRow.insertCell();
-                    avgLabelCell.colSpan = 2;
-                    avgLabelCell.textContent = 'Average Medium Value:';
-                    avgLabelCell.className = 'py-3 px-4 text-right font-bold';
-
-                    const avgValueCell = footerRow.insertCell();
-                    // Format the average back to a currency string with millions/thousands
-                    let avgMediumText = `$${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-                    
-                    // Calculate and display difference from Capital Value
-                    if (!isNaN(pvCapitalValueNumeric)) {
-                        const cvDifference = averageMedium - pvCapitalValueNumeric;
-                        let differenceText;
-                        const formattedDifference = Math.abs(cvDifference).toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-                        if (cvDifference > 0) {
-                            differenceText = `$${formattedDifference} above CV`;
-                        } else if (cvDifference < 0) {
-                            differenceText = `$${formattedDifference} below CV`;
-                        } else {
-                            differenceText = `$0 difference from CV`;
-                        }
-                        // Append to the avgMediumText with a small print class
-                        avgMediumText += `<span class="text-xs font-normal text-gray-500 block">${differenceText}</span>`;
-                    } else {
-                        avgMediumText += `<span class="text-xs font-normal text-gray-500 block">(Capital Value not available for comparison)</span>`;
+                        footerRow.insertCell().textContent = '';
                     }
 
+                    if (pvDataFound) {
+                        summaryDataContainer.style.display = 'flex';
+                    }
 
-                    avgValueCell.innerHTML = avgMediumText; // Use innerHTML to render the span
-                    avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
+                    if (anyLinkGenerated || mediumValues.length > 0) {
+                        resultsSection.style.display = 'block';
+                    }
 
-                    footerRow.insertCell().textContent = ''; // Empty cell for High column
+                    if (!anyLinkGenerated && !pvDataFound && mediumValues.length === 0) {
+                        errorMessage.textContent = 'No property links, summary data, or estimated values could be generated for the given address from any site.';
+                    }
+
+                } catch (error) {
+                    console.error('Overall error during link generation:', error);
+                    errorMessage.textContent = error.message || 'An unexpected overall error occurred during link generation.';
+                } finally {
+                    loadingSpinner.style.display = 'none';
+                    searchButton.disabled = false;
                 }
-
-                if (pvDataFound) {
-                    summaryDataContainer.style.display = 'flex';
-                }
-
-                if (anyLinkGenerated || mediumValues.length > 0) {
-                    resultsSection.style.display = 'block';
-                }
-
-                if (!anyLinkGenerated && !pvDataFound && mediumValues.length === 0) {
-                    errorMessage.textContent = 'No property links, summary data, or estimated values could be generated for the given address from any site.';
-                }
-
-            } catch (error) {
-                console.error('Overall error during link generation:', error);
-                errorMessage.textContent = error.message || 'An unexpected overall error occurred during link generation.';
-            } finally {
-                loadingSpinner.style.display = 'none';
-                searchButton.disabled = false;
-            }
+            });
         });
     </script>
 </body>
