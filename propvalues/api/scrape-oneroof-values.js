@@ -49,7 +49,22 @@ module.exports = async (req, res) => {
         // The medium value seems to be unique with its specific classes
         const mediumValueDiv = $('.text-3xl.font-bold.text-secondary');
         if (mediumValueDiv.length > 0) {
-            scrapedValues.medium = mediumValueDiv.text().trim();
+            // A more precise way to get the text, often helps with duplication issues
+            // This attempts to get the direct text content without children's text
+            // or by cleaning up potential duplicates
+            let mediumText = mediumValueDiv.text().trim();
+
+            // Check if the text contains a duplicate, e.g., "$1.24M$1.24M"
+            // If it does, attempt to extract only the first occurrence or a unique part
+            const match = mediumText.match(/(\$[0-9\.]+[MKB]?)/); // Matches something like $1.24M, $1.5K, etc.
+            if (match && match[1]) {
+                mediumText = match[1]; // Take only the first match
+            } else if (mediumText.length > 0 && mediumText.length % 2 === 0 && mediumText.substring(0, mediumText.length / 2) === mediumText.substring(mediumText.length / 2)) {
+                // Fallback heuristic for simple duplication (e.g. "XXYY" -> "XX")
+                mediumText = mediumText.substring(0, mediumText.length / 2);
+            }
+
+            scrapedValues.medium = mediumText;
             debugLog.push(`Found Medium Value: ${scrapedValues.medium}`);
         } else {
             debugLog.push('Medium value element not found.');
