@@ -27,20 +27,14 @@
             width: 100%;
             border: 1px solid #e2e8f0; /* Subtle border */
         }
-        /* Your general heading reset rule (KEEP THIS, BUT ENSURE H1 IS AFTER IT) */
+        /* Your general heading reset rule (KEEP THIS) */
         h1, h2, h3, h4, h5, h6 {
             font-size: inherit;
             font-weight: inherit;
         }
 
-        /* Specific H1 styling - THIS MUST COME AFTER the general reset if they conflict */
-        h1 {
-            font-size: 1.875rem; /* text-3xl */
-            font-weight: 700; /* font-bold */
-            color: #2d3748; /* gray-800 */
-            text-align: center;
-            margin-bottom: 2rem; /* mb-8 */
-        }
+        /* REMOVE THE H1 BLOCK FROM HERE */
+        /* It is now directly applied to the h1 tag using Tailwind classes */
 
         label {
             display: block;
@@ -205,7 +199,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Find Your Property Values</h1>
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
 
         <label for="addressInput">Enter a New Zealand Address:</label>
         <input type="text" id="addressInput" placeholder="e.g., 21 Neptune Avenue, Auckland" class="rounded-md">
