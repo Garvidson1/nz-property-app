@@ -77,6 +77,21 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); /* Hover shadow */
             transform: translateY(-2px); /* hover:translate-y-0.5 */
         }
+        /* New styling for the summary data section */
+        #summaryData {
+            margin-top: 2rem; /* mt-8 */
+            padding: 15px 20px;
+            background-color: #fff9e6; /* Light yellow background for highlight */
+            border: 1px solid #ffe0b2; /* Orange-ish border */
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6a4a00; /* Darker yellow/brown text */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem; /* Space below this section */
+        }
+
         #results {
             margin-top: 2rem; /* mt-8 */
             padding-top: 1.5rem; /* pt-6 */
@@ -166,6 +181,8 @@
         <div class="loading-spinner" id="loadingSpinner"></div>
         <p class="error-message" id="errorMessage"></p>
 
+        <div id="summaryData"></div> 
+
         <div id="results">
             <h2>Generated Links:</h2>
             <ul id="urlList">
@@ -179,9 +196,10 @@
         const urlList = document.getElementById('urlList');
         const errorMessage = document.getElementById('errorMessage');
         const loadingSpinner = document.getElementById('loadingSpinner');
+        const summaryDataContainer = document.getElementById('summaryData'); // Get the new container
 
         // Function to add a link or error message, and potentially scraped data to the list
-        // Now accepts a 'scrapedData' object
+        // Note: For PropertyValue.co.nz, 'scrapedData' for lastSold is now handled by summaryDataContainer
         function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
             const listItem = document.createElement('li');
             
@@ -204,12 +222,21 @@
                 link.rel = 'noopener noreferrer'; 
                 listItem.appendChild(link);
 
-                // Add scraped data if available and for PropertyValue.co.nz
-                if (scrapedData && siteName === "PropertyValue.co.nz" && scrapedData.lastSold) {
+                // This block is now generally for additional data *other than* summary data moved to top
+                // For PropertyValue.co.nz, lastSold is handled by summaryDataContainer
+                if (scrapedData && siteName !== "PropertyValue.co.nz" && Object.keys(scrapedData).length > 0) {
                     const dataDiv = document.createElement('div');
                     dataDiv.className = 'scraped-data';
-                    dataDiv.textContent = `Last Sold: ${scrapedData.lastSold}`;
-                    listItem.appendChild(dataDiv);
+                    let dataText = '';
+                    // Example of how you'd display other scraped data if added later for other sites
+                    // if (scrapedData.scrapedAddress) { dataText += `Address: ${scrapedData.scrapedAddress}\n`; }
+                    // if (scrapedData.propertyType && scrapedData.propertyType !== 'N/A') { dataText += `Type: ${scrapedData.propertyType}\n`; }
+                    // if (scrapedData.bedrooms && scrapedData.bedrooms !== 'N/A') { dataText += `Beds: ${scrapedData.bedrooms}\n`; }
+                    // if (scrapedData.bathrooms && scrapedData.bathrooms !== 'N/A') { dataText += `Baths: ${scrapedData.bathrooms}\n`; }
+                    dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>'); 
+                    if (dataText.trim()) { // Only append if there's actual data to show
+                        listItem.appendChild(dataDiv);
+                    }
                 }
             }
             urlList.appendChild(listItem);
@@ -219,7 +246,8 @@
             const address = addressInput.value.trim();
             urlList.innerHTML = ''; // Clear previous results
             errorMessage.textContent = ''; // Clear previous errors
-            
+            summaryDataContainer.innerHTML = ''; // Clear previous summary data
+
             if (address === '') {
                 errorMessage.textContent = 'Please enter an address.';
                 return;
@@ -235,7 +263,7 @@
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
                 { siteName: "QV.co.nz", url: '/api/get-qv-url' }, 
-                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url' } // This one now scrapes
+                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url' } 
             ];
 
             const fetchPromises = apiEndpoints.map(apiInfo => 
@@ -263,10 +291,15 @@
                 let anyLinkGenerated = false;
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
-                        // Pass scrapedData to addLinkToUI
                         const { siteName, result, scrapedData } = promiseResult.value; 
+
+                        if (siteName === "PropertyValue.co.nz" && scrapedData && scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
+                            // Display Last Sold data in the summary container
+                            summaryDataContainer.textContent = `Property Value: ${scrapedData.lastSold}`;
+                        }
+                        
                         if (result) {
-                            addLinkToUI(siteName, result, false, scrapedData); // Pass scrapedData
+                            addLinkToUI(siteName, result, false, scrapedData); 
                             anyLinkGenerated = true;
                         } else {
                             addLinkToUI(siteName, "No direct link found.", true); 
@@ -277,7 +310,7 @@
                     }
                 });
 
-                if (!anyLinkGenerated) {
+                if (!anyLinkGenerated && summaryDataContainer.textContent === '') { // Also check if summary data was set
                     errorMessage.textContent = 'No property links could be generated for the given address from any site.';
                 }
 
