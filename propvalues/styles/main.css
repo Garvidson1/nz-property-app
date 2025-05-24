@@ -29,13 +29,17 @@ h1 {
     margin-top: 1rem; /* Added margin-top for spacing between sections */
 }
 
-
+/* REVERTED STYLES FOR ADDRESS INPUT */
 #addressInput {
+    /* Original/reverted styles to achieve rounded left and no right border */
+    border-radius: 0.375rem 0 0 0.375rem; /* rounded-md on left, sharp on right */
+    border-right: none; /* No border on the right to merge with button */
+    
+    /* Keeping general styles that are likely consistent */
     padding: 0.75rem 1rem;
-    border-radius: 0.25rem;
     border: 1px solid #e2e8f0;
     flex-grow: 1;
-    margin-right: 1rem;
+    /* margin-right removed as button directly follows */
     font-size: 1rem;
     color: #2d3748;
 }
@@ -44,12 +48,18 @@ h1 {
     color: #a0aec0;
 }
 
+/* REVERTED STYLES FOR SEARCH BUTTON */
 #searchButton {
+    /* Original/reverted styles to achieve rounded right and sharp left border */
+    border-radius: 0 0.375rem 0.375rem 0; /* rounded-md on right, sharp on left */
+    
+    /* Keeping general styles that are likely consistent */
     padding: 0.75rem 1.5rem;
-    border-radius: 0.25rem;
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.2s;
+    /* Background and text color likely come from Tailwind classes directly on the element */
+    /* e.g., bg-gray-800 text-white hover:bg-gray-700 */
 }
 
 #searchButton:hover {
