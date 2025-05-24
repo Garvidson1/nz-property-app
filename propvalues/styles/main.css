@@ -1,0 +1,155 @@
+/* my-nz-app/styles/main.css */
+
+/* Basic styling for a clean look */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f0f4f8; /* Light blue-gray background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Full viewport height */
+}
+
+.container {
+    background-color: #ffffff; /* White card background */
+    padding: 30px;
+    border-radius: 12px; /* Rounded corners */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    max-width: 500px; /* Max width for readability */
+    width: 100%;
+    border: 1px solid #e2e8f0; /* Subtle border */
+}
+
+/* Your general heading reset rule (KEEP THIS) */
+h1, h2, h3, h4, h5, h6 {
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+/* Styling for the new summary data section with image */
+#summaryData {
+    margin-top: 2rem;
+    padding: 15px 20px;
+    background-color: #fff9e6;
+    border: 1px solid #ffe0b2;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+    display: flex; /* Enable flexbox */
+    align-items: center; /* Vertically align items */
+    gap: 15px; /* Space between image and text */
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    /* Hide initially - controlled by JS */
+    display: none;
+}
+#summaryPhotoWrapper {
+    flex-shrink: 0; /* Prevent image wrapper from shrinking */
+    width: 200px; /* Doubled width for the image */
+    height: 150px; /* Doubled height (maintaining 4:3 aspect ratio) */
+    overflow: hidden; /* Hide parts of image that go outside bounds */
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+#summaryPhotoWrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the area, cropping if necessary */
+    display: block; /* Remove extra space below image */
+}
+#summaryTextContent {
+    flex-grow: 1; /* Allow text content to take remaining space */
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #6a4a00;
+}
+/* Style for the additional property values */
+.property-value-detail {
+    font-size: 0.95rem; /* Slightly smaller than main last sold */
+    color: #4a5568; /* Darker grey for details */
+    margin-top: 0.25rem; /* Small space between items */
+}
+.property-value-detail strong {
+    color: #2d3748; /* Even darker for labels */
+    margin-right: 0.3rem;
+}
+
+#results {
+    margin-top: 2rem; /* mt-8 */
+    padding-top: 1.5rem; /* pt-6 */
+    border-top: 1px solid #ebf4f8; /* border-gray-200 */
+    /* Hide initially - controlled by JS */
+    display: none;
+}
+#results h2 {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600; /* font-semibold */
+    color: #4a5568; /* gray-700 */
+    margin-bottom: 1rem; /* mb-4 */
+}
+#urlList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+/* Styling for the new list item layout */
+#urlList li {
+    background-color: #e0f2fe; /* blue-50 */
+    padding: 12px 15px;
+    border-radius: 6px; /* rounded-md */
+    border: 1px solid #90cdf4; /* blue-200 */
+    margin-bottom: 0.75rem; /* space-y-3 equivalent */
+    /* Adjusted for data display */
+    display: flex;
+    flex-direction: column; /* Stack name, url, and data */
+    align-items: flex-start; /* Align items to the left */
+    gap: 0.5rem; /* Space between elements */
+}
+#urlList li .site-name {
+    font-weight: 600; /* Semi-bold for the site name */
+    color: #2d3748; /* Darker text */
+    font-size: 1rem; /* Adjust font size for better hierarchy */
+}
+#urlList li a, #urlList li .no-link {
+    color: #2b6cb0; /* blue-700 */
+    text-decoration: none;
+    font-size: 0.875rem; /* text-sm */
+    transition: color 0.2s ease-in-out;
+    word-break: break-all; /* Allow long URLs to break */
+    width: 100%; /* Take full width */
+}
+#urlList li a:hover {
+    text-decoration: underline;
+    color: #1a365d; /* blue-900 */
+}
+#urlList li .scraped-data {
+    font-size: 0.875rem; /* text-sm */
+    color: #6a6a6a; /* slightly darker grey */
+    width: 100%; /* Take full width */
+    margin-top: 0.25rem; /* Small space above data */
+    padding-top: 0.25rem;
+    border-top: 1px dashed #c1e4f7; /* Subtle dashed border */
+}
+.error-message {
+    color: #e53e3e; /* red-600 */
+    text-align: center;
+    margin-top: 1rem; /* mt-4 */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500; /* font-medium */
+}
+.loading-spinner {
+    display: none; /* hidden by default */
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 1.5rem auto; /* mx-auto mt-6 */
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
