@@ -1,5 +1,7 @@
 // api/get-propertyvalue-url.js
-// Modified to scrape "Last Sold" data AND the primary property photo from the PropertyValue.co.nz page
+// Modified to scrape "Last Sold" data, primary property photo,
+// Capital Value, Land Value, Improvement Value, and Valuation Date
+// from the PropertyValue.co.nz page.
 
 import * as cheerio from 'cheerio'; // Import cheerio for HTML parsing
 
@@ -8,7 +10,7 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method Not Allowed. Only POST requests are accepted.' });
     }
 
-    const { address } = req.body; 
+    const { address } = req.body;
 
     if (!address) {
         return res.status(400).json({ error: 'Address is required.' });
@@ -29,8 +31,14 @@ export default async function handler(req, res) {
         const pvData = await pvResponse.json();
 
         let finalUrl = '';
-        let scrapedLastSold = 'N/A';
-        let propertyPhotoSrc = 'N/A'; // New variable for the photo source
+        let scrapedData = { // Initialize scrapedData object here
+            lastSold: 'N/A',
+            propertyPhotoSrc: 'N/A',
+            capitalValue: 'N/A',
+            landValue: 'N/A',
+            improvementValue: 'N/A',
+            valuationDate: 'N/A'
+        };
 
         if (pvData.suggestions && Array.isArray(pvData.suggestions) && pvData.suggestions.length > 0) {
             const firstSuggestion = pvData.suggestions[0];
@@ -47,35 +55,59 @@ export default async function handler(req, res) {
 
                 if (!propertyPageResponse.ok) {
                     console.error(`PropertyValue.co.nz property page responded with status: ${propertyPageResponse.status}`);
-                    return res.status(200).json({ 
-                        url: finalUrl, 
-                        data: { 
+                    // Still return the URL and partial data on page load failure
+                    return res.status(200).json({
+                        url: finalUrl,
+                        data: {
                             lastSold: `Could not load page (${propertyPageResponse.status})`,
-                            propertyPhotoSrc: 'N/A' // Ensure photo src is also set on error
-                        } 
+                            propertyPhotoSrc: 'N/A', // Ensure photo src is also set on error
+                            capitalValue: 'N/A', // Set new fields to N/A on error
+                            landValue: 'N/A',
+                            improvementValue: 'N/A',
+                            valuationDate: 'N/A'
+                        }
                     });
                 }
 
                 const propertyHtml = await propertyPageResponse.text();
                 const $ = cheerio.load(propertyHtml); // Load the HTML into cheerio
 
+                // Helper function to extract value based on label class and value class
+                const extractPropertyValue = (labelClass, valueClass) => {
+                    const labelElement = $(`div.${labelClass}`);
+                    if (labelElement.length > 0) {
+                        const valueElement = labelElement.next(`div.${valueClass}`);
+                        if (valueElement.length > 0) {
+                            return valueElement.text().trim();
+                        }
+                    }
+                    return 'Not Found on Page';
+                };
+
                 // Extract Last Sold data
                 const lastSoldElement = $('strong[testid="lastSoldAttribute"]');
-                if (lastSoldElement.length) { 
-                    scrapedLastSold = lastSoldElement.text().trim();
+                if (lastSoldElement.length) {
+                    scrapedData.lastSold = lastSoldElement.text().trim();
                 } else {
                     console.log('PropertyValue.co.nz: "Last Sold" element not found.');
-                    scrapedLastSold = 'Not Found on Page';
+                    scrapedData.lastSold = 'Not Found on Page';
                 }
 
                 // Extract Property Photo Source
                 const propertyPhotoElement = $('img[testid="property-photo-0"]');
                 if (propertyPhotoElement.length) {
-                    propertyPhotoSrc = propertyPhotoElement.attr('src');
+                    scrapedData.propertyPhotoSrc = propertyPhotoElement.attr('src');
                 } else {
                     console.log('PropertyValue.co.nz: Property photo element not found.');
-                    propertyPhotoSrc = 'Not Found on Page';
+                    scrapedData.propertyPhotoSrc = 'Not Found on Page';
                 }
+
+                // Extract new valuation data using the helper
+                scrapedData.capitalValue = extractPropertyValue('capitalValueLabel', 'capitalValueValue');
+                scrapedData.landValue = extractPropertyValue('landValueLabel', 'landValueValue');
+                scrapedData.improvementValue = extractPropertyValue('improvementValueLabel', 'improvementValueValue');
+                scrapedData.valuationDate = extractPropertyValue('valuationDateLabel', 'valuationDateValue');
+
                 // --- END SCRAPING LOGIC ---
 
             } else {
@@ -85,13 +117,10 @@ export default async function handler(req, res) {
             return res.status(404).json({ error: 'PropertyValue.co.nz: No suggestions found for the given address.' });
         }
 
-        // Return the URL AND the scraped data (including new photo source)
-        return res.status(200).json({ 
+        // Return the URL AND all scraped data
+        return res.status(200).json({
             url: finalUrl,
-            data: {
-                lastSold: scrapedLastSold,
-                propertyPhotoSrc: propertyPhotoSrc // Include the photo source in the response
-            }
+            data: scrapedData // Return the entire scrapedData object
         });
 
     } catch (error) {
