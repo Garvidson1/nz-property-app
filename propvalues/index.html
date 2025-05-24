@@ -90,6 +90,8 @@
             align-items: center; /* Vertically align items */
             gap: 15px; /* Space between image and text */
             flex-wrap: wrap; /* Allow wrapping on smaller screens */
+            /* Hide initially */
+            display: none; 
         }
         #summaryPhotoWrapper {
             flex-shrink: 0; /* Prevent image wrapper from shrinking */
@@ -117,6 +119,8 @@
             margin-top: 2rem; /* mt-8 */
             padding-top: 1.5rem; /* pt-6 */
             border-top: 1px solid #ebf4f8; /* border-gray-200 */
+            /* Hide initially */
+            display: none; 
         }
         #results h2 {
             font-size: 1.25rem; /* text-xl */
@@ -223,6 +227,7 @@
         const summaryDataContainer = document.getElementById('summaryData');
         const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper'); // Get photo container
         const summaryTextContent = document.getElementById('summaryTextContent'); // Get text container
+        const resultsSection = document.getElementById('results'); // Get the results section
 
         // Function to add a link or error message, and potentially scraped data to the list
         function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
@@ -268,9 +273,12 @@
             const address = addressInput.value.trim();
             urlList.innerHTML = ''; // Clear previous results
             errorMessage.textContent = ''; // Clear previous errors
-            summaryDataContainer.style.display = 'none'; // Hide summary container initially
+            
+            // Hide summary and results sections before a new search
+            summaryDataContainer.style.display = 'none'; 
             summaryPhotoWrapper.innerHTML = ''; // Clear previous photo
             summaryTextContent.innerHTML = ''; // Clear previous text
+            resultsSection.style.display = 'none'; // Hide results section
 
             if (address === '') {
                 errorMessage.textContent = 'Please enter an address.';
@@ -352,12 +360,14 @@
                 // Only show the summary container if PropertyValue data was found
                 if (pvDataFound) {
                     summaryDataContainer.style.display = 'flex'; // Show it
-                } else {
-                    // If no PV data, ensure the summary section doesn't take up space
-                    summaryDataContainer.style.display = 'none'; 
+                } 
+                
+                // Always show the results section if any links were generated, even if no PV data
+                if (anyLinkGenerated) {
+                    resultsSection.style.display = 'block';
                 }
 
-                if (!anyLinkGenerated && !pvDataFound) { // Also check if PV data was set
+                if (!anyLinkGenerated && !pvDataFound) { // Only show overall error if no links AND no PV data
                     errorMessage.textContent = 'No property links or summary data could be generated for the given address from any site.';
                 }
 
