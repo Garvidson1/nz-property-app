@@ -8,6 +8,49 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/styles/main.css">
 
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
+
+        <div class="flex items-center w-full mb-8">
+            <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="searchButton" class="bg-gray-800 text-white px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Find property values</button>
+        </div>
+
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <p class="error-message" id="errorMessage"></p>
+
+        <div id="summaryData">
+            <div id="summaryPhotoWrapper"></div>
+            <div id="summaryTextContent"></div>
+        </div>
+
+        <div id="results">
+            <h2 class="mt-8">Estimated Values:</h2>
+            <div class="overflow-x-auto">
+                <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-sm text-gray-600 uppercase tracking-wider">
+                            <th class="py-3 px-4 border-b border-gray-200">Website</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Low</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Medium</th>
+                            <th class="py-3 px-4 border-b border-gray-200">High</th>
+                        </tr>
+                    </thead>
+                    <tbody id="estimatedValuesTableBody">
+                        </tbody>
+                    <tfoot id="estimatedValuesTableFoot" class="bg-gray-50 text-right text-gray-700 font-semibold">
+                        </tfoot>
+                </table>
+            </div>
+            <h2>Property Page Links</h2>
+            <ul id="urlList">
+                </ul>
+        </div>
+    </div>
+
     <script>
         const addressInput = document.getElementById('addressInput');
         const searchButton = document.getElementById('searchButton');
@@ -25,7 +68,6 @@
         let autocomplete;
 
         function initAutocomplete() {
-            // console.log("initAutocomplete called"); // Uncomment for debugging if needed
             autocomplete = new google.maps.places.Autocomplete(addressInput, {
                 types: ['address'], // Restrict to address results
                 componentRestrictions: { 'country': ['nz'] } // Restrict to New Zealand addresses
@@ -39,13 +81,18 @@
             const place = autocomplete.getPlace();
 
             if (!place.geometry) {
+                // User entered the name of a Place that was not suggested and pressed the Enter key,
+                // or the Place Details request failed.
                 errorMessage.textContent = "No details available for input: '" + place.name + "'";
                 return;
             }
 
+            // Set the address input value to the selected formatted address
             if (place.formatted_address) {
                 addressInput.value = place.formatted_address;
                 errorMessage.textContent = ''; // Clear any previous error
+                // Optionally, trigger the search automatically if you want
+                // searchButton.click();
             } else {
                 errorMessage.textContent = "Could not retrieve formatted address for the selected place.";
             }
@@ -58,10 +105,12 @@
                 return NaN;
             }
 
+            // Remove dollar signs, commas, and trim whitespace
             let cleanedString = currencyString.replace(/[\$,]/g, '').trim();
 
             let numericValue = parseFloat(cleanedString);
 
+            // Handle 'M' for million, 'K' for thousand
             if (cleanedString.endsWith('M')) {
                 numericValue *= 1000000;
             } else if (cleanedString.endsWith('K')) {
@@ -184,7 +233,7 @@
                 { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' },
                 { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' },
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' },
-                { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
+                { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' }, // Note: No scrapeValuesUrl here, will copy from Homes.co.nz
                 { siteName: "QV.co.nz", url: '/api/get-qv-url' },
                 { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url', scrapeValuesUrl: '/api/scrape-propertyvalue-values' }
             ];
@@ -207,6 +256,7 @@
                         let finalUrl = urlData.url;
                         let combinedScrapedData = urlData.data || {};
 
+                        // Conditional scraping for estimated values if scrapeValuesUrl is defined
                         if (apiInfo.scrapeValuesUrl && finalUrl && !finalUrl.includes("No direct link found.")) {
                             try {
                                 const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
@@ -227,6 +277,8 @@
                                 combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
                             }
                         }
+                        // For other sites like PropertyValue.co.nz that might return 'data' directly
+                        // ENSURE THIS LOGIC IS STILL IN PLACE TO HANDLE THE SUMMARY DATA FROM PROPERTYVALUE.CO.NZ
                         if (apiInfo.siteName === "PropertyValue.co.nz" && urlData.data) {
                             combinedScrapedData = { ...combinedScrapedData, ...urlData.data };
                         }
@@ -245,19 +297,21 @@
                 let anyLinkGenerated = false;
                 let pvDataFound = false;
                 let mediumValues = [];
-                let homesEstimatedValues = null;
-                let pvCapitalValueNumeric = NaN;
+                let homesEstimatedValues = null; // Variable to store Homes.co.nz values
+                let pvCapitalValueNumeric = NaN; // Initialize Capital Value variable
 
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
                         const { siteName, result, scrapedData } = promiseResult.value;
 
+                        // Store Homes.co.nz estimated values if available
                         if (siteName === "Homes.co.nz" && scrapedData && scrapedData.estimatedValues) {
                             homesEstimatedValues = scrapedData.estimatedValues;
                         }
 
+                        // Apply Homes.co.nz values to TradeMe.co.nz
                         if (siteName === "TradeMe.co.nz" && homesEstimatedValues) {
-                            scrapedData.estimatedValues = { ...homesEstimatedValues };
+                            scrapedData.estimatedValues = { ...homesEstimatedValues }; // Shallow copy
                         }
 
                         if (siteName === "PropertyValue.co.nz" && scrapedData) {
@@ -268,6 +322,7 @@
                                 summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
                             }
 
+                            // Capture Capital Value as numeric
                             if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
                                 summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
                                 pvCapitalValueNumeric = parseCurrencyToNumber(scrapedData.capitalValue);
@@ -306,6 +361,7 @@
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
 
+                            // Use the new parseCurrencyToNumber function
                             if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
                                 const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
                                 if (!isNaN(numericValue)) {
@@ -335,8 +391,10 @@
                     avgLabelCell.className = 'py-3 px-4 text-right font-bold';
 
                     const avgValueCell = footerRow.insertCell();
+                    // Format the average back to a currency string with millions/thousands
                     let avgMediumText = `$${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
                     
+                    // Calculate and display difference from Capital Value
                     if (!isNaN(pvCapitalValueNumeric)) {
                         const cvDifference = averageMedium - pvCapitalValueNumeric;
                         let differenceText;
@@ -348,16 +406,17 @@
                         } else {
                             differenceText = `$0 difference from CV`;
                         }
+                        // Append to the avgMediumText with a small print class
                         avgMediumText += `<span class="text-xs font-normal text-gray-500 block">${differenceText}</span>`;
                     } else {
                         avgMediumText += `<span class="text-xs font-normal text-gray-500 block">(Capital Value not available for comparison)</span>`;
                     }
 
 
-                    avgValueCell.innerHTML = avgMediumText;
+                    avgValueCell.innerHTML = avgMediumText; // Use innerHTML to render the span
                     avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
 
-                    footerRow.insertCell().textContent = '';
+                    footerRow.insertCell().textContent = ''; // Empty cell for High column
                 }
 
                 if (pvDataFound) {
@@ -381,47 +440,5 @@
             }
         });
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete"></script>
-</head>
-<body>
-    <div class="container">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
-
-        <div class="flex items-center w-full mb-8">
-            <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="searchButton" class="bg-gray-800 text-white px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Find property values</button>
-        </div>
-
-        <div class="loading-spinner" id="loadingSpinner"></div>
-        <p class="error-message" id="errorMessage"></p>
-
-        <div id="summaryData">
-            <div id="summaryPhotoWrapper"></div>
-            <div id="summaryTextContent"></div>
-        </div>
-
-        <div id="results">
-            <h2 class="mt-8">Estimated Values:</h2>
-            <div class="overflow-x-auto">
-                <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
-                    <thead>
-                        <tr class="bg-gray-100 text-left text-sm text-gray-600 uppercase tracking-wider">
-                            <th class="py-3 px-4 border-b border-gray-200">Website</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Low</th>
-                            <th class="py-3 px-4 border-b border-gray-200">Medium</th>
-                            <th class="py-3 px-4 border-b border-gray-200">High</th>
-                        </tr>
-                    </thead>
-                    <tbody id="estimatedValuesTableBody">
-                    </tbody>
-                    <tfoot id="estimatedValuesTableFoot" class="bg-gray-50 text-right text-gray-700 font-semibold">
-                    </tfoot>
-                </table>
-            </div>
-            <h2>Property Page Links</h2>
-            <ul id="urlList">
-            </ul>
-        </div>
-    </div>
 </body>
 </html>
