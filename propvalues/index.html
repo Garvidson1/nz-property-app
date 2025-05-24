@@ -85,10 +85,13 @@
                 link.rel = 'noopener noreferrer';
                 listItem.appendChild(link);
 
-                if (scrapedData && siteName !== "PropertyValue.co.nz" && Object.keys(scrapedData).length > 0) {
+                // This part usually shows data other than estimated values,
+                // but we are now handling estimatedValues in the table below.
+                // Keep this for consistency if other sites have other non-estimated value data.
+                if (scrapedData && Object.keys(scrapedData).length > 0 && !scrapedData.estimatedValues) {
                     const dataDiv = document.createElement('div');
                     dataDiv.className = 'scraped-data';
-                    let dataText = '';
+                    let dataText = ''; // You can populate this with other data from future scrapers if needed
                     dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>');
                     if (dataText.trim()) {
                         listItem.appendChild(dataDiv);
@@ -103,13 +106,13 @@
             row.className = 'text-sm text-gray-800';
 
             const websiteCell = row.insertCell();
-            if (url && url !== 'N/A' && url !== 'No direct link found.') {
+            if (url && url !== 'N/A' && url !== 'No direct link found.' && !url.includes("Error")) { // Check for valid URL before creating link
                 const link = document.createElement('a');
                 link.href = url;
-                link.textContent = siteName; // Site name is the link text
+                link.textContent = siteName;
                 link.target = '_blank';
                 link.rel = 'noopener noreferrer';
-                link.className = 'text-blue-700 hover:underline font-medium'; // Tailwind classes for link styling
+                link.className = 'text-blue-700 hover:underline font-medium';
                 websiteCell.appendChild(link);
 
                 if (urlError) {
@@ -125,6 +128,12 @@
                 if (urlError) {
                     const errorSpan = document.createElement('span');
                     errorSpan.textContent = ` (${urlError})`;
+                    errorSpan.style.color = 'red';
+                    errorSpan.style.marginLeft = '5px';
+                    websiteCell.appendChild(errorSpan);
+                } else if (url && url.includes("Error")) { // Specifically handle URL errors
+                    const errorSpan = document.createElement('span');
+                    errorSpan.textContent = ` (Error retrieving URL)`;
                     errorSpan.style.color = 'red';
                     errorSpan.style.marginLeft = '5px';
                     websiteCell.appendChild(errorSpan);
@@ -166,7 +175,8 @@
             searchButton.disabled = true;
 
             const apiEndpoints = [
-                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' }, // Added scrapeValuesUrl
+                // RealEstate.co.nz is special because it has two steps: get URL then scrape values
+                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' },
                 { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' },
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
@@ -175,46 +185,58 @@
             ];
 
             const fetchPromises = apiEndpoints.map(apiInfo =>
-                fetch(apiInfo.url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ address: address })
-                })
-                .then(async response => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        const errorData = await response.json().catch(() => ({ error: `Failed to parse error from ${apiInfo.siteName} API` }));
-                        throw new Error(errorData.error || `HTTP error! Status: ${response.status} from ${apiInfo.siteName}`);
-                    }
-                })
-                .then(async data => { // Added async here for the second fetch
-                    let combinedScrapedData = data.data || {}; // Initialize with any existing data (e.g., from PropertyValue.co.nz)
+                (async () => { // Use an IIFE (Immediately Invoked Function Expression) to handle async logic per endpoint
+                    try {
+                        // First, fetch the URL
+                        const urlResponse = await fetch(apiInfo.url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ address: address })
+                        });
 
-                    // If it's RealEstate.co.nz and we have a valid URL, make a second call to scrape values
-                    if (apiInfo.siteName === "RealEstate.co.nz" && data.url && !data.url.includes("No direct link found.")) {
-                        try {
-                            const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ url: data.url })
-                            });
-                            if (scrapeResponse.ok) {
-                                const scrapeData = await scrapeResponse.json();
-                                combinedScrapedData.estimatedValues = scrapeData.estimatedValues;
-                            } else {
-                                const scrapeErrorData = await scrapeResponse.json().catch(() => ({ error: `Failed to parse scrape error from ${apiInfo.siteName}` }));
-                                console.error(`Failed to scrape RealEstate.co.nz values for ${data.url}:`, scrapeErrorData.error);
-                                combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' }; // Set error for values
-                            }
-                        } catch (scrapeError) {
-                            console.error(`Error during RealEstate.co.nz value scraping for ${data.url}:`, scrapeError);
-                            combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' }; // Set error for values
+                        if (!urlResponse.ok) {
+                            const errorData = await urlResponse.json().catch(() => ({ error: `Failed to parse error from ${apiInfo.siteName} URL API` }));
+                            throw new Error(errorData.error || `HTTP error! Status: ${urlResponse.status} from ${apiInfo.siteName} URL API`);
                         }
+
+                        const urlData = await urlResponse.json();
+                        let finalUrl = urlData.url;
+                        let combinedScrapedData = urlData.data || {}; // Initialize with any data from URL endpoint (e.g., empty)
+
+                        // If it's RealEstate.co.nz AND we got a valid URL, make a second call to scrape values
+                        if (apiInfo.siteName === "RealEstate.co.nz" && finalUrl && !finalUrl.includes("No direct link found.")) {
+                            try {
+                                const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ url: finalUrl })
+                                });
+
+                                if (scrapeResponse.ok) {
+                                    const scrapeData = await scrapeResponse.json();
+                                    combinedScrapedData.estimatedValues = scrapeData.estimatedValues;
+                                } else {
+                                    const scrapeErrorData = await scrapeResponse.json().catch(() => ({ error: `Failed to parse scrape error from ${apiInfo.siteName}` }));
+                                    console.error(`Failed to scrape ${apiInfo.siteName} values for ${finalUrl}:`, scrapeErrorData.error);
+                                    combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
+                                }
+                            } catch (scrapeError) {
+                                console.error(`Error during ${apiInfo.siteName} value scraping for ${finalUrl}:`, scrapeError);
+                                combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
+                            }
+                        }
+                        // For other sites, if they were to provide estimated values directly, they would be in urlData.data
+                        // For now, only PropertyValue.co.nz provides 'data' (summary info)
+                        if (apiInfo.siteName === "PropertyValue.co.nz" && urlData.data) {
+                            combinedScrapedData = { ...combinedScrapedData, ...urlData.data };
+                        }
+
+                        return { siteName: apiInfo.siteName, result: finalUrl, scrapedData: combinedScrapedData };
+
+                    } catch (error) {
+                        return { siteName: apiInfo.siteName, error: error.message };
                     }
-                    return { siteName: apiInfo.siteName, result: data.url, scrapedData: combinedScrapedData };
-                })
-                .catch(error => ({ siteName: apiInfo.siteName, error: error.message }))
+                })() // Invoke the IIFE
             );
 
             try {
@@ -228,6 +250,7 @@
                     if (promiseResult.status === 'fulfilled') {
                         const { siteName, result, scrapedData } = promiseResult.value;
 
+                        // Handle PropertyValue.co.nz summary data (photo and last sold, capital etc)
                         if (siteName === "PropertyValue.co.nz" && scrapedData) {
                             let summaryHtml = '';
                             if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
@@ -265,10 +288,13 @@
                             addLinkToUI(siteName, "No direct link found.", true);
                         }
 
+                        // Display estimated values in the table
+                        // Check if estimatedValues exists and is not null/undefined
                         if (scrapedData && scrapedData.estimatedValues) {
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
 
+                            // Add to medium values for average calculation
                             if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
                                 const numericValue = parseFloat(scrapedData.estimatedValues.medium.replace(/[^0-9.-]+/g,""));
                                 if (!isNaN(numericValue)) {
@@ -276,6 +302,7 @@
                                 }
                             }
                         } else {
+                            // If no estimated values, display N/A
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
                         }
@@ -287,6 +314,7 @@
                     }
                 });
 
+                // Calculate and display average if there are medium values
                 if (mediumValues.length > 0) {
                     const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
                     const averageMedium = totalMedium / mediumValues.length;
