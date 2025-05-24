@@ -27,6 +27,13 @@
             width: 100%;
             border: 1px solid #e2e8f0; /* Subtle border */
         }
+        /* Your general heading reset rule (KEEP THIS, BUT ENSURE H1 IS AFTER IT) */
+        h1, h2, h3, h4, h5, h6 {
+            font-size: inherit;
+            font-weight: inherit;
+        }
+
+        /* Specific H1 styling - THIS MUST COME AFTER the general reset if they conflict */
         h1 {
             font-size: 1.875rem; /* text-3xl */
             font-weight: 700; /* font-bold */
@@ -34,6 +41,7 @@
             text-align: center;
             margin-bottom: 2rem; /* mb-8 */
         }
+
         label {
             display: block;
             font-size: 0.9375rem; /* text-base (slightly smaller) */
