@@ -100,29 +100,36 @@
             border-radius: 6px; /* rounded-md */
             border: 1px solid #90cdf4; /* blue-200 */
             margin-bottom: 0.75rem; /* space-y-3 equivalent */
-            display: flex; /* Use flexbox for layout */
-            justify-content: space-between; /* Space out items */
-            align-items: center; /* Vertically align items */
-            gap: 1rem; /* Space between site name and URL */
-            flex-wrap: wrap; /* Allow wrapping on small screens */
+            /* Adjusted for data display */
+            display: flex;
+            flex-direction: column; /* Stack name, url, and data */
+            align-items: flex-start; /* Align items to the left */
+            gap: 0.5rem; /* Space between elements */
         }
         #urlList li .site-name {
             font-weight: 600; /* Semi-bold for the site name */
             color: #2d3748; /* Darker text */
-            flex-shrink: 0; /* Don't shrink the site name */
+            font-size: 1rem; /* Adjust font size for better hierarchy */
         }
         #urlList li a, #urlList li .no-link {
             color: #2b6cb0; /* blue-700 */
             text-decoration: none;
-            font-size: 0.9375rem; /* text-sm md:text-base */
+            font-size: 0.875rem; /* text-sm */
             transition: color 0.2s ease-in-out;
             word-break: break-all; /* Allow long URLs to break */
-            text-align: right; /* Align URL to the right */
-            flex-grow: 1; /* Allow URL to take up available space */
+            width: 100%; /* Take full width */
         }
         #urlList li a:hover {
             text-decoration: underline;
             color: #1a365d; /* blue-900 */
+        }
+        #urlList li .scraped-data {
+            font-size: 0.875rem; /* text-sm */
+            color: #6a6a6a; /* slightly darker grey */
+            width: 100%; /* Take full width */
+            margin-top: 0.25rem; /* Small space above data */
+            padding-top: 0.25rem;
+            border-top: 1px dashed #c1e4f7; /* Subtle dashed border */
         }
         .error-message {
             color: #e53e3e; /* red-600 */
@@ -173,29 +180,37 @@
         const errorMessage = document.getElementById('errorMessage');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // Function to add a link or error message to the list
-        function addLinkToUI(siteName, url, isError = false) {
+        // Function to add a link or error message, and potentially scraped data to the list
+        // Now accepts a 'scrapedData' object
+        function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
             const listItem = document.createElement('li');
             
             const nameSpan = document.createElement('span');
             nameSpan.className = 'site-name'; 
             nameSpan.textContent = siteName;
+            listItem.appendChild(nameSpan);
 
             if (isError) {
                 const textSpan = document.createElement('span');
                 textSpan.className = 'no-link'; 
-                textSpan.textContent = url; // url here is actually the error message
+                textSpan.textContent = urlOrError; // urlOrError here is the error message
                 textSpan.style.color = 'red'; 
-                listItem.appendChild(nameSpan);
                 listItem.appendChild(textSpan);
             } else {
                 const link = document.createElement('a');
-                link.href = url;
-                link.textContent = url;
+                link.href = urlOrError; // urlOrError here is the actual URL
+                link.textContent = urlOrError;
                 link.target = '_blank'; 
                 link.rel = 'noopener noreferrer'; 
-                listItem.appendChild(nameSpan);
                 listItem.appendChild(link);
+
+                // Add scraped data if available and for PropertyValue.co.nz
+                if (scrapedData && siteName === "PropertyValue.co.nz" && scrapedData.lastSold) {
+                    const dataDiv = document.createElement('div');
+                    dataDiv.className = 'scraped-data';
+                    dataDiv.textContent = `Last Sold: ${scrapedData.lastSold}`;
+                    listItem.appendChild(dataDiv);
+                }
             }
             urlList.appendChild(listItem);
         }
@@ -215,12 +230,12 @@
 
             // Define the API endpoints for each site
             const apiEndpoints = [
-                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url' },
+                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url' }, 
                 { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' },
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
-                { siteName: "QV.co.nz", url: '/api/get-qv-url' }, // QV.co.nz endpoint
-                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url' } // New PropertyValue.co.nz endpoint
+                { siteName: "QV.co.nz", url: '/api/get-qv-url' }, 
+                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url' } // This one now scrapes
             ];
 
             const fetchPromises = apiEndpoints.map(apiInfo => 
@@ -237,7 +252,8 @@
                         throw new Error(errorData.error || `HTTP error! Status: ${response.status} from ${apiInfo.siteName}`);
                     }
                 })
-                .then(data => ({ siteName: apiInfo.siteName, result: data.url })) 
+                // Ensure 'data.data' is captured here, which holds our scraped info
+                .then(data => ({ siteName: apiInfo.siteName, result: data.url, scrapedData: data.data })) 
                 .catch(error => ({ siteName: apiInfo.siteName, error: error.message })) 
             );
 
@@ -247,9 +263,10 @@
                 let anyLinkGenerated = false;
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
-                        const { siteName, result } = promiseResult.value;
+                        // Pass scrapedData to addLinkToUI
+                        const { siteName, result, scrapedData } = promiseResult.value; 
                         if (result) {
-                            addLinkToUI(siteName, result);
+                            addLinkToUI(siteName, result, false, scrapedData); // Pass scrapedData
                             anyLinkGenerated = true;
                         } else {
                             addLinkToUI(siteName, "No direct link found.", true); 
