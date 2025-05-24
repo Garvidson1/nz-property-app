@@ -228,7 +228,7 @@ h1 {
 /* Google Autocomplete Dropdown Styling */
 .pac-container {
     background-color: #fff;
-    position: absolute !important; /* Force absolute positioning */
+    position: absolute !important; /* Keep this to ensure it's absolute */
     z-index: 1000; /* Ensure it's above most other elements */
     border: 1px solid #d1d5db; /* border-gray-300 */
     border-radius: 0.375rem; /* rounded-md */
@@ -236,21 +236,25 @@ h1 {
     font-family: 'Inter', sans-serif;
     color: #4a5568;
     margin-top: 5px; /* Small gap below the input */
-    /* Adjust width and positioning based on your input field's parent container */
-    /* If the input field is inside a flex container that sets its own width,
-       you might need to match that width. */
-    /* The parent div of your input has class 'flex items-center w-full mb-8' */
-    /* This will require the parent div to be position: relative; which is the .container */
-    left: 50%; /* Center relative to container */
-    transform: translateX(-50%); /* Center relative to container */
-    width: calc(100% - 4rem); /* 100% of container minus 2rem padding on each side */
-    max-width: 960px; /* Match max-width of .container */
-    top: auto !important; /* Let it flow below the input */
-    bottom: auto !important; /* Ensure it doesn't try to go up */
+
+    /* Re-introducing centering properties to align with the main container */
+    left: 50%;
+    transform: translateX(-50%);
+
+    /* Adjusting width for better fit. This max-width will constrain it,
+       and `width: auto` will allow it to be narrower if content is small. */
+    width: auto; /* Let content dictate width, but respect max-width */
+    max-width: 700px; /* Adjust this value if still too wide/narrow for input.
+                         This is an approximate width for the input field itself. */
+    min-width: 300px; /* Ensure it's not too small on smaller screens */
+
+    /* Let Google handle vertical position, but ensure these are set. */
+    top: auto !important;
+    bottom: auto !important;
 }
 
 .pac-item {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1rem; /* Existing padding, ensure it's sufficient */
     cursor: pointer;
     border-bottom: 1px solid #f3f4f6; /* border-gray-100 */
 }
