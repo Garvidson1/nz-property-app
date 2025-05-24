@@ -91,14 +91,14 @@
             gap: 15px; /* Space between image and text */
             flex-wrap: wrap; /* Allow wrapping on smaller screens */
         }
-   #summaryPhotoWrapper {
-                flex-shrink: 0; /* Prevent image wrapper from shrinking */
-                width: 200px; /* Doubled width for the image */
-                height: 150px; /* Doubled height (maintaining 4:3 aspect ratio) */
-                overflow: hidden; /* Hide parts of image that go outside bounds */
-                border-radius: 4px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            }
+        #summaryPhotoWrapper {
+            flex-shrink: 0; /* Prevent image wrapper from shrinking */
+            width: 200px; /* Doubled width for the image */
+            height: 150px; /* Doubled height (maintaining 4:3 aspect ratio) */
+            overflow: hidden; /* Hide parts of image that go outside bounds */
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
         #summaryPhotoWrapper img {
             width: 100%;
             height: 100%;
@@ -197,7 +197,7 @@
 
         <label for="addressInput">Enter a New Zealand Address:</label>
         <input type="text" id="addressInput" placeholder="e.g., 21 Neptune Avenue, Auckland" class="rounded-md">
-        <button id="searchButton" class="rounded-md px-8 py-3 w-auto">Generate Links</button>
+        <button id="searchButton" class="rounded-md px-8 py-3 w-auto">Find property values</button>
 
         <div class="loading-spinner" id="loadingSpinner"></div>
         <p class="error-message" id="errorMessage"></p>
@@ -208,7 +208,7 @@
         </div> 
 
         <div id="results">
-            <h2>Generated Links:</h2>
+            <h2>Property Values:</h2>
             <ul id="urlList">
                 </ul>
         </div>
@@ -227,7 +227,7 @@
         // Function to add a link or error message, and potentially scraped data to the list
         function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
             const listItem = document.createElement('li');
-
+            
             const nameSpan = document.createElement('span');
             nameSpan.className = 'site-name'; 
             nameSpan.textContent = siteName;
@@ -336,7 +336,7 @@
                                 summaryPhotoWrapper.appendChild(img);
                             }
                         }
-
+                        
                         if (result) {
                             addLinkToUI(siteName, result, false, scrapedData); 
                             anyLinkGenerated = true;
