@@ -15,14 +15,13 @@ export default async function handler(req, res) {
     try {
         const qvApiUrl = 'https://www.qv.co.nz/api/property-search-address/';
 
-        // Construct the payload exactly as specified for the POST request
         const payload = {
             search_type: "search",
             search_params: {
-                search: address // Use the user's provided address
+                search: address
             },
             metrics: {
-                search_timestamp: Date.now(), // Dynamic timestamp
+                search_timestamp: Date.now(),
                 search_type: "search",
                 total_cache_hits: 0,
                 total_results: 0,
@@ -34,32 +33,41 @@ export default async function handler(req, res) {
         const qvResponse = await fetch(qvApiUrl, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json' // Important: specify content type for JSON payload
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36' // Added User-Agent
             },
-            body: JSON.stringify(payload) // Convert payload to JSON string
+            body: JSON.stringify(payload)
         });
 
         if (!qvResponse.ok) {
             console.error(`QV.co.nz API responded with status: ${qvResponse.status}`);
-            return res.status(qvResponse.status).json({ error: `QV.co.nz API error: ${qvResponse.status}` });
+            // Attempt to get more detail from the response body if it's JSON
+            let errorDetail = `QV.co.nz API error: ${qvResponse.status}`;
+            try {
+                const errorBody = await qvResponse.text(); // Use text() to avoid JSON parsing errors for non-JSON responses
+                console.error('QV.co.nz API error response body:', errorBody);
+                if (errorBody.includes("captcha")) { // Example check for common blocks
+                    errorDetail += " (Likely bot/CAPTCHA detection)";
+                } else if (errorBody.includes("forbidden")) {
+                     errorDetail += " (Forbidden - Access Denied)";
+                }
+            } catch (parseError) {
+                console.error('Failed to parse QV.co.nz error response body:', parseError);
+            }
+            return res.status(qvResponse.status).json({ error: errorDetail });
         }
 
         const qvData = await qvResponse.json();
 
-        // Check if results array exists and has at least one item
         if (qvData.results && Array.isArray(qvData.results) && qvData.results.length > 0) {
-            // Find the item with rank: 0 as specified
             const propertyResult = qvData.results.find(item => item.rank === 0);
 
             if (propertyResult && propertyResult.url) {
-                // Return the URL found
                 return res.status(200).json({ url: propertyResult.url });
             } else {
-                // If no rank 0 result or URL is missing
                 return res.status(404).json({ error: 'QV.co.nz: No primary property result (rank 0) or URL not found for address.' });
             }
         } else {
-            // If the results array is empty or not an array
             return res.status(404).json({ error: 'QV.co.nz: No results found for the given address.' });
         }
 
