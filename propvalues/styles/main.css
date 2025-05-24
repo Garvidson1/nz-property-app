@@ -153,3 +153,26 @@ h1, h2, h3, h4, h5, h6 {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* Custom rounding for search bar components */
+#addressInput {
+    border-top-left-radius: 1.375rem; /* ~22px */
+    border-bottom-left-radius: 1.375rem; /* ~22px */
+    /* Only left corners for input */
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+#searchButton {
+    border-top-right-radius: 1.375rem; /* ~22px */
+    border-bottom-right-radius: 1.375rem; /* ~22px */
+    /* Only right corners for button */
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+/* Ensure consistent height for visual alignment */
+#addressInput,
+#searchButton {
+    height: 44px; /* A common height for form elements, roughly 2 * 1.375rem */
+}
