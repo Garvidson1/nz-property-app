@@ -43,7 +43,8 @@
                         </tfoot>
                 </table>
             </div>
-            <h2>Property Page Links</h2> <ul id="urlList">
+            <h2>Property Page Links</h2>
+            <ul id="urlList">
                 </ul>
         </div>
     </div>
@@ -260,6 +261,7 @@
                 let pvDataFound = false;
                 let mediumValues = [];
                 let homesEstimatedValues = null; // Variable to store Homes.co.nz values
+                let pvCapitalValueNumeric = NaN; // Initialize Capital Value variable
 
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
@@ -282,9 +284,15 @@
                             } else {
                                 summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
                             }
+
+                            // Capture Capital Value as numeric
                             if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
                                 summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
+                                pvCapitalValueNumeric = parseCurrencyToNumber(scrapedData.capitalValue);
+                            } else {
+                                summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
                             }
+
                             if (scrapedData.landValue && scrapedData.landValue !== 'N/A' && scrapedData.landValue !== 'Not Found on Page') {
                                 summaryHtml += `<div class="property-value-detail"><strong>Land Value:</strong> ${scrapedData.landValue}</div>`;
                             }
@@ -316,9 +324,9 @@
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
 
-                            // Modified: Use the new parseCurrencyToNumber function
+                            // Use the new parseCurrencyToNumber function
                             if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
-                                const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium); // Use the new function
+                                const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
                                 if (!isNaN(numericValue)) {
                                     mediumValues.push(numericValue);
                                 }
@@ -347,7 +355,27 @@
 
                     const avgValueCell = footerRow.insertCell();
                     // Format the average back to a currency string with millions/thousands
-                    avgValueCell.textContent = `$${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                    let avgMediumText = `$${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                    
+                    // Calculate and display difference from Capital Value
+                    if (!isNaN(pvCapitalValueNumeric)) {
+                        const cvDifference = averageMedium - pvCapitalValueNumeric;
+                        let differenceText;
+                        if (cvDifference > 0) {
+                            differenceText = `$${cvDifference.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} above CV`;
+                        } else if (cvDifference < 0) {
+                            differenceText = `$${Math.abs(cvDifference).toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} below CV`;
+                        } else {
+                            differenceText = `$0 difference from CV`;
+                        }
+                        // Append to the avgMediumText with a small print class
+                        avgMediumText += `<span class="text-xs font-normal text-gray-500 block">${differenceText}</span>`;
+                    } else {
+                        avgMediumText += `<span class="text-xs font-normal text-gray-500 block">(CV not available)</span>`;
+                    }
+
+
+                    avgValueCell.innerHTML = avgMediumText; // Use innerHTML to render the span
                     avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
 
                     footerRow.insertCell().textContent = ''; // Empty cell for High column
