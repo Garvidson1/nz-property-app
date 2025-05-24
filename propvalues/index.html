@@ -170,7 +170,7 @@
         const errorMessage = document.getElementById('errorMessage');
         const loadingSpinner = document.getElementById('loadingSpinner');
 
-        // Function to add a link to the list
+        // Function to add a link or error message to the list
         function addLinkToUI(siteName, url, isError = false) {
             const listItem = document.createElement('li');
             
@@ -178,20 +178,19 @@
             nameSpan.className = 'site-name'; 
             nameSpan.textContent = siteName;
 
-            // If it's an error or no link, display plain text, otherwise display clickable link
-            if (isError || url.startsWith('Error') || url.startsWith('No direct')) {
+            if (isError) {
                 const textSpan = document.createElement('span');
-                textSpan.className = 'no-link'; // Class for non-clickable text
-                textSpan.textContent = url;
-                if (isError) textSpan.style.color = 'red'; // Make errors red
+                textSpan.className = 'no-link'; 
+                textSpan.textContent = url; // url here is actually the error message
+                textSpan.style.color = 'red'; 
                 listItem.appendChild(nameSpan);
                 listItem.appendChild(textSpan);
             } else {
                 const link = document.createElement('a');
                 link.href = url;
                 link.textContent = url;
-                link.target = '_blank'; // Open in a new tab
-                link.rel = 'noopener noreferrer'; // Security best practice
+                link.target = '_blank'; 
+                link.rel = 'noopener noreferrer'; 
                 listItem.appendChild(nameSpan);
                 listItem.appendChild(link);
             }
@@ -214,7 +213,8 @@
             // Define the API endpoints for each site
             const apiEndpoints = [
                 { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url' },
-                { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' }
+                { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' },
+                { siteName: "Homes.co.nz", url: '/api/get-homes-url' } // New entry for Homes.co.nz
                 // Add more sites here when ready
             ];
 
@@ -224,59 +224,48 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ address: address })
                 })
-                .then(response => {
-                    // Check if response was OK (status 200-299)
+                .then(async response => {
                     if (response.ok) {
                         return response.json();
                     } else {
-                        // If not OK, parse error message from body if available
-                        return response.json().then(errorData => {
-                            throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
-                        }).catch(() => {
-                            // Catch JSON parsing errors for non-OK responses
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        });
+                        const errorData = await response.json().catch(() => ({ error: `Failed to parse error from ${apiInfo.siteName} API` }));
+                        throw new Error(errorData.error || `HTTP error! Status: ${response.status} from ${apiInfo.siteName}`);
                     }
                 })
-                .then(data => ({ siteName: apiInfo.siteName, result: data.url })) // Return siteName and successful URL
-                .catch(error => ({ siteName: apiInfo.siteName, error: error.message })) // Return siteName and error message
+                .then(data => ({ siteName: apiInfo.siteName, result: data.url })) 
+                .catch(error => ({ siteName: apiInfo.siteName, error: error.message })) 
             );
 
             try {
-                // Use Promise.allSettled to wait for all fetches to complete,
-                // regardless of success or failure for individual calls.
                 const results = await Promise.allSettled(fetchPromises);
 
+                let anyLinkGenerated = false;
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
                         const { siteName, result } = promiseResult.value;
                         if (result) {
                             addLinkToUI(siteName, result);
+                            anyLinkGenerated = true;
                         } else {
-                            // This would catch cases where data.url was not present but no error was thrown
+                            // This case means the API call succeeded but returned no 'url'
                             addLinkToUI(siteName, "No direct link found.", true); 
                         }
                     } else { // promiseResult.status === 'rejected'
-                        // This case should ideally be caught by the .catch in the map,
-                        // but it's here as a fallback for any unexpected promise rejections.
-                        const { siteName, error } = promiseResult.reason || promiseResult.value; // Get siteName and error from value/reason
+                        const { siteName, error } = promiseResult.reason || {};
                         addLinkToUI(siteName, error || "Unknown error occurred.", true); 
                     }
                 });
 
-                // Check if any link was successfully generated
-                const anyLinkGenerated = results.some(r => r.status === 'fulfilled' && r.value && r.value.result);
                 if (!anyLinkGenerated) {
-                    errorMessage.textContent = 'No property links could be generated for the given address.';
+                    errorMessage.textContent = 'No property links could be generated for the given address from any site.';
                 }
 
             } catch (error) {
-                // This catch block would only be hit if Promise.allSettled itself failed (unlikely)
                 console.error('Overall error during link generation:', error);
-                errorMessage.textContent = error.message || 'An unexpected error occurred during link generation.';
+                errorMessage.textContent = error.message || 'An unexpected overall error occurred during link generation.';
             } finally {
-                loadingSpinner.style.display = 'none'; // Hide spinner
-                searchButton.disabled = false; // Re-enable button
+                loadingSpinner.style.display = 'none'; 
+                searchButton.disabled = false; 
             }
         });
     </script>
