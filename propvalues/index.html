@@ -6,210 +6,16 @@
     <title>NZ Property Link Finder</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Basic styling for a clean look */
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f4f8; /* Light blue-gray background */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh; /* Full viewport height */
-        }
-        .container {
-            background-color: #ffffff; /* White card background */
-            padding: 30px;
-            border-radius: 12px; /* Rounded corners */
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow */
-            max-width: 500px; /* Max width for readability */
-            width: 100%;
-            border: 1px solid #e2e8f0; /* Subtle border */
-        }
-        /* Your general heading reset rule (KEEP THIS) */
-        h1, h2, h3, h4, h5, h6 {
-            font-size: inherit;
-            font-weight: inherit;
-        }
-
-        label {
-            display: block;
-            font-size: 0.9375rem; /* text-base (slightly smaller) */
-            font-weight: 600; /* font-semibold */
-            color: #4a5568; /* gray-700 */
-            margin-bottom: 0.5rem; /* mb-2 */
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #cbd5e0; /* gray-300 */
-            border-radius: 8px; /* rounded-lg */
-            font-size: 1rem; /* text-base */
-            color: #2d3748;
-            outline: none;
-            transition: all 0.2s ease-in-out;
-            margin-bottom: 1.25rem; /* mb-5 */
-        }
-        input[type="text"]:focus {
-            border-color: #4299e1; /* blue-500 */
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* focus-ring */
-        }
-        button {
-            width: auto; /* Auto width for button */
-            background-color: #4a4a4a; /* Darker grey color */
-            color: white; /* White text for readability */
-            padding: 14px 30px; /* Increased padding for height and width */
-            border: none;
-            border-radius: 25px; /* More rounded corners */
-            font-size: 1.125rem; /* text-lg */
-            font-weight: 700; /* font-bold */
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Adjusted shadow for darker button */
-            display: block; /* Ensure it takes its own line */
-            margin: 0 auto; /* Center the button */
-        }
-        button:hover {
-            background-color: #333333; /* Even darker on hover */
-            color: white; /* Explicitly keep text white on hover */
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); /* Hover shadow */
-            transform: translateY(-2px); /* hover:translate-y-0.5 */
-        }
-        /* Styling for the new summary data section with image */
-        #summaryData {
-            margin-top: 2rem;
-            padding: 15px 20px;
-            background-color: #fff9e6;
-            border: 1px solid #ffe0b2;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-            margin-bottom: 2rem;
-            display: flex; /* Enable flexbox */
-            align-items: center; /* Vertically align items */
-            gap: 15px; /* Space between image and text */
-            flex-wrap: wrap; /* Allow wrapping on smaller screens */
-            /* Hide initially */
-            display: none; 
-        }
-        #summaryPhotoWrapper {
-            flex-shrink: 0; /* Prevent image wrapper from shrinking */
-            width: 200px; /* Doubled width for the image */
-            height: 150px; /* Doubled height (maintaining 4:3 aspect ratio) */
-            overflow: hidden; /* Hide parts of image that go outside bounds */
-            border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        #summaryPhotoWrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover; /* Cover the area, cropping if necessary */
-            display: block; /* Remove extra space below image */
-        }
-        #summaryTextContent {
-            flex-grow: 1; /* Allow text content to take remaining space */
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: #6a4a00;
-        }
-        /* Style for the additional property values */
-        .property-value-detail {
-            font-size: 0.95rem; /* Slightly smaller than main last sold */
-            color: #4a5568; /* Darker grey for details */
-            margin-top: 0.25rem; /* Small space between items */
-        }
-        .property-value-detail strong {
-            color: #2d3748; /* Even darker for labels */
-            margin-right: 0.3rem;
-        }
-
-        #results {
-            margin-top: 2rem; /* mt-8 */
-            padding-top: 1.5rem; /* pt-6 */
-            border-top: 1px solid #ebf4f8; /* border-gray-200 */
-            /* Hide initially */
-            display: none; 
-        }
-        #results h2 {
-            font-size: 1.25rem; /* text-xl */
-            font-weight: 600; /* font-semibold */
-            color: #4a5568; /* gray-700 */
-            margin-bottom: 1rem; /* mb-4 */
-        }
-        #urlList {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        /* Styling for the new list item layout */
-        #urlList li {
-            background-color: #e0f2fe; /* blue-50 */
-            padding: 12px 15px;
-            border-radius: 6px; /* rounded-md */
-            border: 1px solid #90cdf4; /* blue-200 */
-            margin-bottom: 0.75rem; /* space-y-3 equivalent */
-            /* Adjusted for data display */
-            display: flex;
-            flex-direction: column; /* Stack name, url, and data */
-            align-items: flex-start; /* Align items to the left */
-            gap: 0.5rem; /* Space between elements */
-        }
-        #urlList li .site-name {
-            font-weight: 600; /* Semi-bold for the site name */
-            color: #2d3748; /* Darker text */
-            font-size: 1rem; /* Adjust font size for better hierarchy */
-        }
-        #urlList li a, #urlList li .no-link {
-            color: #2b6cb0; /* blue-700 */
-            text-decoration: none;
-            font-size: 0.875rem; /* text-sm */
-            transition: color 0.2s ease-in-out;
-            word-break: break-all; /* Allow long URLs to break */
-            width: 100%; /* Take full width */
-        }
-        #urlList li a:hover {
-            text-decoration: underline;
-            color: #1a365d; /* blue-900 */
-        }
-        #urlList li .scraped-data {
-            font-size: 0.875rem; /* text-sm */
-            color: #6a6a6a; /* slightly darker grey */
-            width: 100%; /* Take full width */
-            margin-top: 0.25rem; /* Small space above data */
-            padding-top: 0.25rem;
-            border-top: 1px dashed #c1e4f7; /* Subtle dashed border */
-        }
-        .error-message {
-            color: #e53e3e; /* red-600 */
-            text-align: center;
-            margin-top: 1rem; /* mt-4 */
-            font-size: 0.875rem; /* text-sm */
-            font-weight: 500; /* font-medium */
-        }
-        .loading-spinner {
-            display: none; /* hidden by default */
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 1.5rem auto; /* mx-auto mt-6 */
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    <link rel="stylesheet" href="/styles/main.css">
 </head>
 <body>
     <div class="container">
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
 
-        <label for="addressInput">Enter a New Zealand Address:</label>
-        <input type="text" id="addressInput" placeholder="e.g., 21 Neptune Avenue, Auckland" class="rounded-md">
-        <button id="searchButton" class="rounded-md px-8 py-3 w-auto">Find property values</button>
+        <div class="flex items-center w-full mb-8">
+            <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow rounded-l-md border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="searchButton" class="bg-gray-800 text-white rounded-r-md px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Find property values</button>
+        </div>
 
         <div class="loading-spinner" id="loadingSpinner"></div>
         <p class="error-message" id="errorMessage"></p>
@@ -217,7 +23,7 @@
         <div id="summaryData">
             <div id="summaryPhotoWrapper"></div>
             <div id="summaryTextContent"></div>
-        </div> 
+        </div>
 
         <div id="results">
             <h2>Property Values:</h2>
@@ -233,43 +39,38 @@
         const errorMessage = document.getElementById('errorMessage');
         const loadingSpinner = document.getElementById('loadingSpinner');
         const summaryDataContainer = document.getElementById('summaryData');
-        const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper'); // Get photo container
-        const summaryTextContent = document.getElementById('summaryTextContent'); // Get text container
-        const resultsSection = document.getElementById('results'); // Get the results section
+        const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper');
+        const summaryTextContent = document.getElementById('summaryTextContent');
+        const resultsSection = document.getElementById('results');
 
-        // Function to add a link or error message, and potentially scraped data to the list
         function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
             const listItem = document.createElement('li');
-            
+
             const nameSpan = document.createElement('span');
-            nameSpan.className = 'site-name'; 
+            nameSpan.className = 'site-name';
             nameSpan.textContent = siteName;
             listItem.appendChild(nameSpan);
 
             if (isError) {
                 const textSpan = document.createElement('span');
-                textSpan.className = 'no-link'; 
-                textSpan.textContent = urlOrError; // urlOrError here is the error message
-                textSpan.style.color = 'red'; 
+                textSpan.className = 'no-link';
+                textSpan.textContent = urlOrError;
+                textSpan.style.color = 'red';
                 listItem.appendChild(textSpan);
             } else {
                 const link = document.createElement('a');
-                link.href = urlOrError; // urlOrError here is the actual URL
+                link.href = urlOrError;
                 link.textContent = urlOrError;
-                link.target = '_blank'; 
-                link.rel = 'noopener noreferrer'; 
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
                 listItem.appendChild(link);
 
-                // This block is for additional data that stays with the link
-                // (lastSold and photo are now handled by summaryDataContainer)
                 if (scrapedData && siteName !== "PropertyValue.co.nz" && Object.keys(scrapedData).length > 0) {
                     const dataDiv = document.createElement('div');
                     dataDiv.className = 'scraped-data';
                     let dataText = '';
-                    // Example: if you add more data to RealEstate.co.nz in the future
-                    // if (scrapedData.scrapedAddress) { dataText += `Address: ${scrapedData.scrapedAddress}\n`; }
-                    dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>'); 
-                    if (dataText.trim()) { 
+                    dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>');
+                    if (dataText.trim()) {
                         listItem.appendChild(dataDiv);
                     }
                 }
@@ -279,34 +80,32 @@
 
         searchButton.addEventListener('click', async () => {
             const address = addressInput.value.trim();
-            urlList.innerHTML = ''; // Clear previous results
-            errorMessage.textContent = ''; // Clear previous errors
-            
-            // Hide summary and results sections before a new search
-            summaryDataContainer.style.display = 'none'; 
-            summaryPhotoWrapper.innerHTML = ''; // Clear previous photo
-            summaryTextContent.innerHTML = ''; // Clear previous text
-            resultsSection.style.display = 'none'; // Hide results section
+            urlList.innerHTML = '';
+            errorMessage.textContent = '';
+
+            summaryDataContainer.style.display = 'none';
+            summaryPhotoWrapper.innerHTML = '';
+            summaryTextContent.innerHTML = '';
+            resultsSection.style.display = 'none';
 
             if (address === '') {
                 errorMessage.textContent = 'Please enter an address.';
                 return;
             }
 
-            loadingSpinner.style.display = 'block'; // Show spinner
-            searchButton.disabled = true; // Disable button during search
+            loadingSpinner.style.display = 'block';
+            searchButton.disabled = true;
 
-            // Define the API endpoints for each site
             const apiEndpoints = [
-                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url' }, 
+                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url' },
                 { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' },
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
-                { siteName: "QV.co.nz", url: '/api/get-qv-url' }, 
-                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url' } 
+                { siteName: "QV.co.nz", url: '/api/get-qv-url' },
+                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url' }
             ];
 
-            const fetchPromises = apiEndpoints.map(apiInfo => 
+            const fetchPromises = apiEndpoints.map(apiInfo =>
                 fetch(apiInfo.url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -320,19 +119,19 @@
                         throw new Error(errorData.error || `HTTP error! Status: ${response.status} from ${apiInfo.siteName}`);
                     }
                 })
-                .then(data => ({ siteName: apiInfo.siteName, result: data.url, scrapedData: data.data })) 
-                .catch(error => ({ siteName: apiInfo.siteName, error: error.message })) 
+                .then(data => ({ siteName: apiInfo.siteName, result: data.url, scrapedData: data.data }))
+                .catch(error => ({ siteName: apiInfo.siteName, error: error.message }))
             );
 
             try {
                 const results = await Promise.allSettled(fetchPromises);
 
                 let anyLinkGenerated = false;
-                let pvDataFound = false; // Flag to check if PropertyValue data was set
+                let pvDataFound = false;
 
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
-                        const { siteName, result, scrapedData } = promiseResult.value; 
+                        const { siteName, result, scrapedData } = promiseResult.value;
 
                         if (siteName === "PropertyValue.co.nz" && scrapedData) {
                             let summaryHtml = '';
@@ -342,7 +141,6 @@
                                 summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
                             }
 
-                            // Add new property value details here
                             if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
                                 summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
                             }
@@ -356,10 +154,9 @@
                                 summaryHtml += `<div class="property-value-detail"><strong>Valuation Date:</strong> ${scrapedData.valuationDate}</div>`;
                             }
 
-                            summaryTextContent.innerHTML = summaryHtml; // Use innerHTML to render multiple lines
-                            pvDataFound = true; // Set flag
+                            summaryTextContent.innerHTML = summaryHtml;
+                            pvDataFound = true;
 
-                            // Display photo if available
                             if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A' && scrapedData.propertyPhotoSrc !== 'Not Found on Page') {
                                 const img = document.createElement('img');
                                 img.src = scrapedData.propertyPhotoSrc;
@@ -367,30 +164,28 @@
                                 summaryPhotoWrapper.appendChild(img);
                             }
                         }
-                        
+
                         if (result) {
-                            addLinkToUI(siteName, result, false, scrapedData); 
+                            addLinkToUI(siteName, result, false, scrapedData);
                             anyLinkGenerated = true;
                         } else {
-                            addLinkToUI(siteName, "No direct link found.", true); 
+                            addLinkToUI(siteName, "No direct link found.", true);
                         }
-                    } else { // promiseResult.status === 'rejected'
+                    } else {
                         const { siteName, error } = promiseResult.reason || {};
-                        addLinkToUI(siteName, error || "Unknown error occurred.", true); 
+                        addLinkToUI(siteName, error || "Unknown error occurred.", true);
                     }
                 });
 
-                // Only show the summary container if PropertyValue data was found
                 if (pvDataFound) {
-                    summaryDataContainer.style.display = 'flex'; // Show it
-                } 
-                
-                // Always show the results section if any links were generated, even if no PV data
+                    summaryDataContainer.style.display = 'flex';
+                }
+
                 if (anyLinkGenerated) {
                     resultsSection.style.display = 'block';
                 }
 
-                if (!anyLinkGenerated && !pvDataFound) { // Only show overall error if no links AND no PV data
+                if (!anyLinkGenerated && !pvDataFound) {
                     errorMessage.textContent = 'No property links or summary data could be generated for the given address from any site.';
                 }
 
@@ -398,8 +193,8 @@
                 console.error('Overall error during link generation:', error);
                 errorMessage.textContent = error.message || 'An unexpected overall error occurred during link generation.';
             } finally {
-                loadingSpinner.style.display = 'none'; 
-                searchButton.disabled = false; 
+                loadingSpinner.style.display = 'none';
+                searchButton.disabled = false;
             }
         });
     </script>
