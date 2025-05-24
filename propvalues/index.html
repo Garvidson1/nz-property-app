@@ -26,10 +26,6 @@
         </div>
 
         <div id="results">
-            <h2>Property Values:</h2>
-            <ul id="urlList">
-                </ul>
-
             <h2 class="mt-8">Estimated Values:</h2>
             <div class="overflow-x-auto">
                 <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
@@ -47,7 +43,10 @@
                         </tfoot>
                 </table>
             </div>
-            </div>
+            <h2>Property Values:</h2>
+            <ul id="urlList">
+                </ul>
+        </div>
     </div>
 
     <script>
@@ -199,7 +198,6 @@
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' }, // Note: No scrapeValuesUrl here, will copy from Homes.co.nz
                 { siteName: "QV.co.nz", url: '/api/get-qv-url' },
-                // ADD THIS LINE FOR PROPERTYVALUE.CO.NZ ESTIMATED VALUES
                 { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url', scrapeValuesUrl: '/api/scrape-propertyvalue-values' }
             ];
 
