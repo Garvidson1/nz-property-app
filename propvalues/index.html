@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/styles/main.css">
+
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete"></script>
 </head>
 <body>
     <div class="container">
@@ -61,6 +63,41 @@
         const resultsSection = document.getElementById('results');
         const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
         const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
+
+        // Google Places Autocomplete variables and functions
+        let autocomplete;
+
+        function initAutocomplete() {
+            autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                types: ['address'], // Restrict to address results
+                componentRestrictions: { 'country': ['nz'] } // Restrict to New Zealand addresses
+            });
+
+            // Add a listener to populate the address input when a place is selected
+            autocomplete.addListener('place_changed', onPlaceChanged);
+        }
+
+        function onPlaceChanged() {
+            const place = autocomplete.getPlace();
+
+            if (!place.geometry) {
+                // User entered the name of a Place that was not suggested and pressed the Enter key,
+                // or the Place Details request failed.
+                errorMessage.textContent = "No details available for input: '" + place.name + "'";
+                return;
+            }
+
+            // Set the address input value to the selected formatted address
+            if (place.formatted_address) {
+                addressInput.value = place.formatted_address;
+                errorMessage.textContent = ''; // Clear any previous error
+                // Optionally, trigger the search automatically if you want
+                // searchButton.click();
+            } else {
+                errorMessage.textContent = "Could not retrieve formatted address for the selected place.";
+            }
+        }
+
 
         // Helper function to convert currency string to number
         function parseCurrencyToNumber(currencyString) {
@@ -361,17 +398,18 @@
                     if (!isNaN(pvCapitalValueNumeric)) {
                         const cvDifference = averageMedium - pvCapitalValueNumeric;
                         let differenceText;
+                        const formattedDifference = Math.abs(cvDifference).toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
                         if (cvDifference > 0) {
-                            differenceText = `$${cvDifference.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} above CV`;
+                            differenceText = `$${formattedDifference} above CV`;
                         } else if (cvDifference < 0) {
-                            differenceText = `$${Math.abs(cvDifference).toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} below CV`;
+                            differenceText = `$${formattedDifference} below CV`;
                         } else {
                             differenceText = `$0 difference from CV`;
                         }
                         // Append to the avgMediumText with a small print class
                         avgMediumText += `<span class="text-xs font-normal text-gray-500 block">${differenceText}</span>`;
                     } else {
-                        avgMediumText += `<span class="text-xs font-normal text-gray-500 block">(CV not available)</span>`;
+                        avgMediumText += `<span class="text-xs font-normal text-gray-500 block">(Capital Value not available for comparison)</span>`;
                     }
 
 
