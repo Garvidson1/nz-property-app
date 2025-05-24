@@ -98,7 +98,6 @@
             urlList.appendChild(listItem);
         }
 
-        // Corrected function to display estimated values in the table, preserving hyperlink and adding error
         function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
             const row = estimatedValuesTableBody.insertRow();
             row.className = 'text-sm text-gray-800';
@@ -113,7 +112,6 @@
                 link.className = 'text-blue-700 hover:underline font-medium'; // Tailwind classes for link styling
                 websiteCell.appendChild(link);
 
-                // If there's a URL error *and* a valid link, append the error
                 if (urlError) {
                     const errorSpan = document.createElement('span');
                     errorSpan.textContent = ` (${urlError})`;
@@ -123,7 +121,6 @@
                 }
 
             } else {
-                // If no valid URL, just display site name and the error if available
                 websiteCell.textContent = siteName;
                 if (urlError) {
                     const errorSpan = document.createElement('span');
@@ -133,7 +130,7 @@
                     websiteCell.appendChild(errorSpan);
                 }
             }
-            websiteCell.className += ' py-2 px-4 border-b border-gray-200'; // Apply common cell classes
+            websiteCell.className += ' py-2 px-4 border-b border-gray-200';
 
             const lowCell = row.insertCell();
             lowCell.textContent = estimatedValues.low || 'N/A';
@@ -169,7 +166,7 @@
             searchButton.disabled = true;
 
             const apiEndpoints = [
-                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url' },
+                { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' }, // Added scrapeValuesUrl
                 { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' },
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
@@ -191,7 +188,32 @@
                         throw new Error(errorData.error || `HTTP error! Status: ${response.status} from ${apiInfo.siteName}`);
                     }
                 })
-                .then(data => ({ siteName: apiInfo.siteName, result: data.url, scrapedData: data.data }))
+                .then(async data => { // Added async here for the second fetch
+                    let combinedScrapedData = data.data || {}; // Initialize with any existing data (e.g., from PropertyValue.co.nz)
+
+                    // If it's RealEstate.co.nz and we have a valid URL, make a second call to scrape values
+                    if (apiInfo.siteName === "RealEstate.co.nz" && data.url && !data.url.includes("No direct link found.")) {
+                        try {
+                            const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ url: data.url })
+                            });
+                            if (scrapeResponse.ok) {
+                                const scrapeData = await scrapeResponse.json();
+                                combinedScrapedData.estimatedValues = scrapeData.estimatedValues;
+                            } else {
+                                const scrapeErrorData = await scrapeResponse.json().catch(() => ({ error: `Failed to parse scrape error from ${apiInfo.siteName}` }));
+                                console.error(`Failed to scrape RealEstate.co.nz values for ${data.url}:`, scrapeErrorData.error);
+                                combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' }; // Set error for values
+                            }
+                        } catch (scrapeError) {
+                            console.error(`Error during RealEstate.co.nz value scraping for ${data.url}:`, scrapeError);
+                            combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' }; // Set error for values
+                        }
+                    }
+                    return { siteName: apiInfo.siteName, result: data.url, scrapedData: combinedScrapedData };
+                })
                 .catch(error => ({ siteName: apiInfo.siteName, error: error.message }))
             );
 
@@ -200,13 +222,12 @@
 
                 let anyLinkGenerated = false;
                 let pvDataFound = false;
-                let mediumValues = []; // Array to store numeric medium values for averaging
+                let mediumValues = [];
 
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
                         const { siteName, result, scrapedData } = promiseResult.value;
 
-                        // Handle PropertyValue.co.nz summary data (photo and last sold, capital etc)
                         if (siteName === "PropertyValue.co.nz" && scrapedData) {
                             let summaryHtml = '';
                             if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
@@ -214,7 +235,6 @@
                             } else {
                                 summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
                             }
-
                             if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
                                 summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
                             }
@@ -227,7 +247,6 @@
                             if (scrapedData.valuationDate && scrapedData.valuationDate !== 'N/A' && scrapedData.valuationDate !== 'Not Found on Page') {
                                 summaryHtml += `<div class="property-value-detail"><strong>Valuation Date:</strong> ${scrapedData.valuationDate}</div>`;
                             }
-
                             summaryTextContent.innerHTML = summaryHtml;
                             pvDataFound = true;
 
@@ -239,7 +258,6 @@
                             }
                         }
 
-                        // Display site URL in the list
                         if (result) {
                             addLinkToUI(siteName, result, false, scrapedData);
                             anyLinkGenerated = true;
@@ -247,22 +265,17 @@
                             addLinkToUI(siteName, "No direct link found.", true);
                         }
 
-                        // Handle Estimated Values for the new table
                         if (scrapedData && scrapedData.estimatedValues) {
-                            // If result is an error message (like "No direct link found."), pass it as urlError
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
 
-                            // Clean and store medium value for average calculation
-                            if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A') {
+                            if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
                                 const numericValue = parseFloat(scrapedData.estimatedValues.medium.replace(/[^0-9.-]+/g,""));
                                 if (!isNaN(numericValue)) {
                                     mediumValues.push(numericValue);
                                 }
                             }
                         } else {
-                             // If no estimated values, display N/A in the table and provide the URL error if it exists
-                             // Use result as urlError if result indicates no link (e.g., "No direct link found.")
                             const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                             displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
                         }
@@ -270,35 +283,32 @@
                     } else { // promiseResult.status === 'rejected'
                         const { siteName, error } = promiseResult.reason || {};
                         addLinkToUI(siteName, error || "Unknown error occurred.", true);
-                        // Also add an entry to the estimated values table with the error
                         displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, error || "Unknown error occurred.");
                     }
                 });
 
-                // Calculate and display average if there are medium values
                 if (mediumValues.length > 0) {
                     const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
                     const averageMedium = totalMedium / mediumValues.length;
 
                     const footerRow = estimatedValuesTableFoot.insertRow();
                     const avgLabelCell = footerRow.insertCell();
-                    avgLabelCell.colSpan = 2; // Span across Website and Low columns
+                    avgLabelCell.colSpan = 2;
                     avgLabelCell.textContent = 'Average Medium Value:';
                     avgLabelCell.className = 'py-3 px-4 text-right font-bold';
 
                     const avgValueCell = footerRow.insertCell();
-                    avgValueCell.textContent = `$${averageMedium.toLocaleString(undefined, { maximumFractionDigits: 0 })}`; // Format as currency
+                    avgValueCell.textContent = `$${averageMedium.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
                     avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
 
-                    footerRow.insertCell().textContent = ''; // Empty cell for the High column
+                    footerRow.insertCell().textContent = '';
                 }
 
-                // Show sections if data is present
                 if (pvDataFound) {
                     summaryDataContainer.style.display = 'flex';
                 }
 
-                if (anyLinkGenerated || mediumValues.length > 0) { // Show results if any links or estimated values
+                if (anyLinkGenerated || mediumValues.length > 0) {
                     resultsSection.style.display = 'block';
                 }
 
