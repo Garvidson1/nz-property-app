@@ -13,8 +13,8 @@
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
 
         <div class="flex items-center w-full mb-8">
-            <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow rounded-l-md border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button id="searchButton" class="bg-gray-800 text-white rounded-r-md px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Find property values</button>
+            <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="searchButton" class="bg-gray-800 text-white px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Find property values</button>
         </div>
 
         <div class="loading-spinner" id="loadingSpinner"></div>
@@ -29,7 +29,25 @@
             <h2>Property Values:</h2>
             <ul id="urlList">
                 </ul>
-        </div>
+
+            <h2 class="mt-8">Estimated Values:</h2>
+            <div class="overflow-x-auto">
+                <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-sm text-gray-600 uppercase tracking-wider">
+                            <th class="py-3 px-4 border-b border-gray-200">Website</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Low</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Medium</th>
+                            <th class="py-3 px-4 border-b border-gray-200">High</th>
+                        </tr>
+                    </thead>
+                    <tbody id="estimatedValuesTableBody">
+                        </tbody>
+                    <tfoot id="estimatedValuesTableFoot" class="bg-gray-50 text-right text-gray-700 font-semibold">
+                        </tfoot>
+                </table>
+            </div>
+            </div>
     </div>
 
     <script>
@@ -42,6 +60,8 @@
         const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper');
         const summaryTextContent = document.getElementById('summaryTextContent');
         const resultsSection = document.getElementById('results');
+        const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody'); // New
+        const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot'); // New
 
         function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
             const listItem = document.createElement('li');
@@ -78,15 +98,52 @@
             urlList.appendChild(listItem);
         }
 
+        // New function to display estimated values in the table
+        function displayEstimatedValues(siteName, url, estimatedValues) {
+            const row = estimatedValuesTableBody.insertRow();
+            row.className = 'text-sm text-gray-800';
+
+            const websiteCell = row.insertCell();
+            if (url && url !== 'N/A' && url !== 'No direct link found.') {
+                const link = document.createElement('a');
+                link.href = url;
+                link.textContent = siteName;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                link.className = 'text-blue-700 hover:underline font-medium'; // Tailwind classes for link styling
+                websiteCell.appendChild(link);
+            } else {
+                websiteCell.textContent = siteName;
+            }
+
+
+            const lowCell = row.insertCell();
+            lowCell.textContent = estimatedValues.low || 'N/A';
+            lowCell.className = 'py-2 px-4 border-b border-gray-200';
+
+            const mediumCell = row.insertCell();
+            mediumCell.textContent = estimatedValues.medium || 'N/A';
+            mediumCell.className = 'py-2 px-4 border-b border-gray-200';
+
+            const highCell = row.insertCell();
+            highCell.textContent = estimatedValues.high || 'N/A';
+            highCell.className = 'py-2 px-4 border-b border-gray-200';
+
+            // Add classes to all cells
+            websiteCell.className += ' py-2 px-4 border-b border-gray-200';
+        }
+
         searchButton.addEventListener('click', async () => {
             const address = addressInput.value.trim();
             urlList.innerHTML = '';
             errorMessage.textContent = '';
+            estimatedValuesTableBody.innerHTML = ''; // Clear previous table rows
+            estimatedValuesTableFoot.innerHTML = ''; // Clear previous average
 
             summaryDataContainer.style.display = 'none';
             summaryPhotoWrapper.innerHTML = '';
             summaryTextContent.innerHTML = '';
-            resultsSection.style.display = 'none';
+            resultsSection.style.display = 'none'; // Keep hidden until data is ready
 
             if (address === '') {
                 errorMessage.textContent = 'Please enter an address.';
@@ -128,11 +185,13 @@
 
                 let anyLinkGenerated = false;
                 let pvDataFound = false;
+                let mediumValues = []; // Array to store numeric medium values for averaging
 
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
                         const { siteName, result, scrapedData } = promiseResult.value;
 
+                        // Handle PropertyValue.co.nz summary data (photo and last sold, capital etc)
                         if (siteName === "PropertyValue.co.nz" && scrapedData) {
                             let summaryHtml = '';
                             if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
@@ -165,28 +224,66 @@
                             }
                         }
 
+                        // Display site URL
                         if (result) {
                             addLinkToUI(siteName, result, false, scrapedData);
                             anyLinkGenerated = true;
                         } else {
                             addLinkToUI(siteName, "No direct link found.", true);
                         }
-                    } else {
+
+                        // Handle Estimated Values for the new table
+                        if (scrapedData && scrapedData.estimatedValues) {
+                            displayEstimatedValues(siteName, result, scrapedData.estimatedValues); // Pass URL here
+                            // Clean and store medium value for average calculation
+                            if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A') {
+                                const numericValue = parseFloat(scrapedData.estimatedValues.medium.replace(/[^0-9.-]+/g,""));
+                                if (!isNaN(numericValue)) {
+                                    mediumValues.push(numericValue);
+                                }
+                            }
+                        } else {
+                             // If no estimated values, display N/A in the table
+                            displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' });
+                        }
+
+                    } else { // promiseResult.status === 'rejected'
                         const { siteName, error } = promiseResult.reason || {};
                         addLinkToUI(siteName, error || "Unknown error occurred.", true);
+                        // Also add an entry to the estimated values table as 'N/A' if the fetch failed
+                        displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' });
                     }
                 });
 
+                // Calculate and display average if there are medium values
+                if (mediumValues.length > 0) {
+                    const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
+                    const averageMedium = totalMedium / mediumValues.length;
+
+                    const footerRow = estimatedValuesTableFoot.insertRow();
+                    const avgLabelCell = footerRow.insertCell();
+                    avgLabelCell.colSpan = 2; // Span across Website and Low columns
+                    avgLabelCell.textContent = 'Average Medium Value:';
+                    avgLabelCell.className = 'py-3 px-4 text-right font-bold';
+
+                    const avgValueCell = footerRow.insertCell();
+                    avgValueCell.textContent = `$${averageMedium.toLocaleString(undefined, { maximumFractionDigits: 0 })}`; // Format as currency
+                    avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
+
+                    footerRow.insertCell().textContent = ''; // Empty cell for the High column
+                }
+
+                // Show sections if data is present
                 if (pvDataFound) {
                     summaryDataContainer.style.display = 'flex';
                 }
 
-                if (anyLinkGenerated) {
+                if (anyLinkGenerated || mediumValues.length > 0) { // Show results if any links or estimated values
                     resultsSection.style.display = 'block';
                 }
 
-                if (!anyLinkGenerated && !pvDataFound) {
-                    errorMessage.textContent = 'No property links or summary data could be generated for the given address from any site.';
+                if (!anyLinkGenerated && !pvDataFound && mediumValues.length === 0) {
+                    errorMessage.textContent = 'No property links, summary data, or estimated values could be generated for the given address from any site.';
                 }
 
             } catch (error) {
