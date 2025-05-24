@@ -16,7 +16,6 @@ export default async function handler(req, res) {
         const encodedAddress = encodeURIComponent(address);
 
         // Step 1: Resolve property_id from address
-        // Example: https://gateway.homes.co.nz/property/resolve?address=21%20Neptune%20Avenue
         const resolveUrl = `https://gateway.homes.co.nz/property/resolve?address=${encodedAddress}`;
         const resolveResponse = await fetch(resolveUrl);
 
@@ -27,7 +26,6 @@ export default async function handler(req, res) {
 
         const resolveData = await resolveResponse.json();
 
-        // Check for specific error property or missing property_id
         if (resolveData.error) {
             return res.status(404).json({ error: `Homes.co.nz: ${resolveData.error}` });
         }
@@ -38,7 +36,6 @@ export default async function handler(req, res) {
         const propertyId = resolveData.property_id;
 
         // Step 2: Get property details using property_id
-        // Example: https://gateway.homes.co.nz/properties?property_ids=d6abb00c-04ae-42c3-b293-200efdc79a75
         const detailsUrl = `https://gateway.homes.co.nz/properties?property_ids=${propertyId}`;
         const detailsResponse = await fetch(detailsUrl);
 
@@ -49,18 +46,19 @@ export default async function handler(req, res) {
 
         const detailsData = await detailsResponse.json();
 
-        // The response for /properties?property_ids=... is usually an object where keys are property_ids
-        // We expect one property with the given ID
-        const propertyDetails = detailsData.properties && detailsData.properties[propertyId];
+        // === CHANGE HERE: Correctly parse the 'cards' array and find the URL ===
+        const propertyCard = detailsData.cards && detailsData.cards.find(
+            card => card.id === propertyId // Find the specific card using the propertyId
+        );
 
-        if (propertyDetails && propertyDetails.url) {
+        if (propertyCard && propertyCard.url) {
             // Construct the final Homes.co.nz URL
             // The 'url' from the API is a path (e.g., "/auckland/beach-haven/21-neptune-avenue/kOgyn")
             // so we prepend the base domain and "/address"
-            const finalUrl = `https://homes.co.nz/address${propertyDetails.url}`;
+            const finalUrl = `https://homes.co.nz/address${propertyCard.url}`;
             return res.status(200).json({ url: finalUrl });
         } else {
-            return res.status(404).json({ error: 'Homes.co.nz: Property details or URL path not found.' });
+            return res.status(404).json({ error: 'Homes.co.nz: Property card or URL path not found in details response.' });
         }
 
     } catch (error) {
