@@ -60,8 +60,8 @@
         const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper');
         const summaryTextContent = document.getElementById('summaryTextContent');
         const resultsSection = document.getElementById('results');
-        const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody'); // New
-        const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot'); // New
+        const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
+        const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
 
         function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
             const listItem = document.createElement('li');
@@ -98,8 +98,8 @@
             urlList.appendChild(listItem);
         }
 
-        // New function to display estimated values in the table
-        function displayEstimatedValues(siteName, url, estimatedValues) {
+        // New function to display estimated values in the table, now with urlError parameter
+        function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
             const row = estimatedValuesTableBody.insertRow();
             row.className = 'text-sm text-gray-800';
 
@@ -113,9 +113,16 @@
                 link.className = 'text-blue-700 hover:underline font-medium'; // Tailwind classes for link styling
                 websiteCell.appendChild(link);
             } else {
+                // If there's a URL error, display site name and the error in red
                 websiteCell.textContent = siteName;
+                if (urlError) {
+                    const errorSpan = document.createElement('span');
+                    errorSpan.textContent = ` (${urlError})`;
+                    errorSpan.style.color = 'red'; // Make the error text red
+                    errorSpan.style.marginLeft = '5px'; // Add some space
+                    websiteCell.appendChild(errorSpan);
+                }
             }
-
 
             const lowCell = row.insertCell();
             lowCell.textContent = estimatedValues.low || 'N/A';
@@ -234,7 +241,7 @@
 
                         // Handle Estimated Values for the new table
                         if (scrapedData && scrapedData.estimatedValues) {
-                            displayEstimatedValues(siteName, result, scrapedData.estimatedValues); // Pass URL here
+                            displayEstimatedValues(siteName, result, scrapedData.estimatedValues); // Pass URL here, no urlError for fulfilled
                             // Clean and store medium value for average calculation
                             if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A') {
                                 const numericValue = parseFloat(scrapedData.estimatedValues.medium.replace(/[^0-9.-]+/g,""));
@@ -250,8 +257,8 @@
                     } else { // promiseResult.status === 'rejected'
                         const { siteName, error } = promiseResult.reason || {};
                         addLinkToUI(siteName, error || "Unknown error occurred.", true);
-                        // Also add an entry to the estimated values table as 'N/A' if the fetch failed
-                        displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' });
+                        // Also add an entry to the estimated values table with the error
+                        displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, error || "Unknown error occurred."); // Pass urlError here
                     }
                 });
 
