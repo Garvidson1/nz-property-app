@@ -196,8 +196,8 @@
             const apiEndpoints = [
                 { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' },
                 { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' },
-                { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' }, // <-- ADD THIS LINE
-                { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
+                { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' },
+                { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' }, // Note: No scrapeValuesUrl here, will copy from Homes.co.nz
                 { siteName: "QV.co.nz", url: '/api/get-qv-url' },
                 { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url' }
             ];
@@ -260,10 +260,21 @@
                 let anyLinkGenerated = false;
                 let pvDataFound = false;
                 let mediumValues = [];
+                let homesEstimatedValues = null; // Variable to store Homes.co.nz values
 
                 results.forEach(promiseResult => {
                     if (promiseResult.status === 'fulfilled') {
                         const { siteName, result, scrapedData } = promiseResult.value;
+
+                        // Store Homes.co.nz estimated values if available
+                        if (siteName === "Homes.co.nz" && scrapedData && scrapedData.estimatedValues) {
+                            homesEstimatedValues = scrapedData.estimatedValues;
+                        }
+
+                        // Apply Homes.co.nz values to TradeMe.co.nz
+                        if (siteName === "TradeMe.co.nz" && homesEstimatedValues) {
+                            scrapedData.estimatedValues = { ...homesEstimatedValues }; // Shallow copy
+                        }
 
                         if (siteName === "PropertyValue.co.nz" && scrapedData) {
                             let summaryHtml = '';
