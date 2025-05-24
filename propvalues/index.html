@@ -57,21 +57,23 @@
             box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5); /* focus-ring */
         }
         button {
-            width: 100%;
-            background-color: #3182ce; /* blue-600 */
+            width: auto; /* Changed: Auto width for button */
+            background-color: #4a4a4a; /* Changed: Darker grey color */
             color: white;
-            padding: 12px 20px;
+            padding: 12px 20px; /* Base padding */
             border: none;
             border-radius: 8px; /* rounded-lg */
             font-size: 1.125rem; /* text-lg */
             font-weight: 700; /* font-bold */
             cursor: pointer;
             transition: all 0.2s ease-in-out;
-            box-shadow: 0 4px 10px rgba(49, 130, 206, 0.3); /* shadow-lg */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3); /* Changed: Adjusted shadow for darker button */
+            display: block; /* Ensure it takes its own line and respects margins */
+            margin: 0 auto; /* Center the button if not full width */
         }
         button:hover {
-            background-color: #2b6cb0; /* blue-700 */
-            box-shadow: 0 6px 15px rgba(49, 130, 206, 0.4); /* hover:shadow-xl */
+            background-color: #333333; /* Changed: Even darker on hover */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4); /* Changed: Hover shadow */
             transform: translateY(-2px); /* hover:translate-y-0.5 */
         }
         #results {
@@ -151,7 +153,7 @@
 
         <label for="addressInput">Enter a New Zealand Address:</label>
         <input type="text" id="addressInput" placeholder="e.g., 21 Neptune Avenue, Auckland" class="rounded-md">
-        <button id="searchButton" class="rounded-md">Generate Links</button>
+        <button id="searchButton" class="rounded-md px-8 py-3 w-auto">Generate Links</button>
 
         <div class="loading-spinner" id="loadingSpinner"></div>
         <p class="error-message" id="errorMessage"></p>
@@ -215,7 +217,7 @@
                 { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url' },
                 { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url' },
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url' },
-                { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' } // New entry for TradeMe.co.nz
+                { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' } 
             ];
 
             const fetchPromises = apiEndpoints.map(apiInfo => 
