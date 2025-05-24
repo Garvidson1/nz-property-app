@@ -199,7 +199,8 @@
                 { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' },
                 { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' }, // Note: No scrapeValuesUrl here, will copy from Homes.co.nz
                 { siteName: "QV.co.nz", url: '/api/get-qv-url' },
-                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url' }
+                // ADD THIS LINE FOR PROPERTYVALUE.CO.NZ ESTIMATED VALUES
+                { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url', scrapeValuesUrl: '/api/scrape-propertyvalue-values' }
             ];
 
             const fetchPromises = apiEndpoints.map(apiInfo =>
@@ -242,6 +243,7 @@
                             }
                         }
                         // For other sites like PropertyValue.co.nz that might return 'data' directly
+                        // ENSURE THIS LOGIC IS STILL IN PLACE TO HANDLE THE SUMMARY DATA FROM PROPERTYVALUE.CO.NZ
                         if (apiInfo.siteName === "PropertyValue.co.nz" && urlData.data) {
                             combinedScrapedData = { ...combinedScrapedData, ...urlData.data };
                         }
