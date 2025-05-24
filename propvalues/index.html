@@ -33,9 +33,6 @@
             font-weight: inherit;
         }
 
-        /* REMOVE THE H1 BLOCK FROM HERE */
-        /* It is now directly applied to the h1 tag using Tailwind classes */
-
         label {
             display: block;
             font-size: 0.9375rem; /* text-base (slightly smaller) */
@@ -115,7 +112,16 @@
             font-weight: 600;
             color: #6a4a00;
         }
-
+        /* Style for the additional property values */
+        .property-value-detail {
+            font-size: 0.95rem; /* Slightly smaller than main last sold */
+            color: #4a5568; /* Darker grey for details */
+            margin-top: 0.25rem; /* Small space between items */
+        }
+        .property-value-detail strong {
+            color: #2d3748; /* Even darker for labels */
+            margin-right: 0.3rem;
+        }
 
         #results {
             margin-top: 2rem; /* mt-8 */
@@ -329,13 +335,28 @@
                         const { siteName, result, scrapedData } = promiseResult.value; 
 
                         if (siteName === "PropertyValue.co.nz" && scrapedData) {
-                            let lastSoldText = '';
+                            let summaryHtml = '';
                             if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
-                                lastSoldText = `Last Sold: ${scrapedData.lastSold}`;
+                                summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
                             } else {
-                                lastSoldText = `Last Sold: ${scrapedData.lastSold}`; // Show N/A or Not Found
+                                summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
                             }
-                            summaryTextContent.textContent = `Property Value: ${lastSoldText}`;
+
+                            // Add new property value details here
+                            if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
+                                summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
+                            }
+                            if (scrapedData.landValue && scrapedData.landValue !== 'N/A' && scrapedData.landValue !== 'Not Found on Page') {
+                                summaryHtml += `<div class="property-value-detail"><strong>Land Value:</strong> ${scrapedData.landValue}</div>`;
+                            }
+                            if (scrapedData.improvementValue && scrapedData.improvementValue !== 'N/A' && scrapedData.improvementValue !== 'Not Found on Page') {
+                                summaryHtml += `<div class="property-value-detail"><strong>Improvement Value:</strong> ${scrapedData.improvementValue}</div>`;
+                            }
+                            if (scrapedData.valuationDate && scrapedData.valuationDate !== 'N/A' && scrapedData.valuationDate !== 'Not Found on Page') {
+                                summaryHtml += `<div class="property-value-detail"><strong>Valuation Date:</strong> ${scrapedData.valuationDate}</div>`;
+                            }
+
+                            summaryTextContent.innerHTML = summaryHtml; // Use innerHTML to render multiple lines
                             pvDataFound = true; // Set flag
 
                             // Display photo if available
