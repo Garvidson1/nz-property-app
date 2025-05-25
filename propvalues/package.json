@@ -1,19 +1,15 @@
 {
-  "name": "nz-property-app",
+  "name": "my-nz-app",
   "version": "1.0.0",
-  "description": "NZ Property Value Finder",
+  "description": "NZ Property Link Finder",
   "main": "index.js",
   "scripts": {
-    "build": "node build.js",
-    "start": "vercel dev"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cheerio": "^1.0.0-rc.12"
-  },
-  "devDependencies": {
-    "fs-extra": "^11.2.0"
   }
 }
