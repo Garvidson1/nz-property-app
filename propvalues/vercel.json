@@ -1,0 +1,13 @@
+{
+  "build": {
+    "env": {
+      "PUBLIC_MAPS_API_KEY": "@maps_api_key"
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/dist/$1"
+    }
+  ]
+}
