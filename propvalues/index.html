@@ -8,45 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/styles/main.css">
 
-    <script>
-        let autocomplete; // Declare autocomplete globally or in initAutocomplete's scope
-
-        function initAutocomplete() {
-            // Ensure addressInput element exists before trying to initialize Autocomplete
-            const addressInput = document.getElementById('addressInput');
-            if (addressInput) {
-                autocomplete = new google.maps.places.Autocomplete(addressInput, {
-                    types: ['address'], // Restrict to address results
-                    componentRestrictions: { 'country': ['nz'] } // Restrict to New Zealand addresses
-                });
-
-                // Add a listener to populate the address input when a place is selected
-                autocomplete.addListener('place_changed', onPlaceChanged);
-            } else {
-                console.error("Address input element not found. Autocomplete could not be initialized.");
-            }
-        }
-
-        // The onPlaceChanged function also needs to be globally accessible if called by initAutocomplete
-        function onPlaceChanged() {
-            const place = autocomplete.getPlace();
-
-            if (!place.geometry) {
-                errorMessage.textContent = "No details available for input: '" + place.name + "'";
-                return;
-            }
-
-            if (place.formatted_address) {
-                document.getElementById('addressInput').value = place.formatted_address;
-                document.getElementById('errorMessage').textContent = '';
-            } else {
-                document.getElementById('errorMessage').textContent = "Could not retrieve formatted address for the selected place.";
-            }
-        }
-    </script>
-
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete"></script>
-</head>
+    </head>
 <body>
     <div class="container">
         <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
@@ -89,6 +51,43 @@
     </div>
 
     <script>
+        // Declare autocomplete globally so it can be accessed by both initAutocomplete and onPlaceChanged
+        let autocomplete;
+
+        // Define initAutocomplete and onPlaceChanged in the global scope
+        // This ensures the Google Maps API can call them when it loads.
+        function initAutocomplete() {
+            const addressInput = document.getElementById('addressInput');
+            if (addressInput) {
+                autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                    types: ['address'], // Restrict to address results
+                    componentRestrictions: { 'country': ['nz'] } // Restrict to New Zealand addresses
+                });
+                autocomplete.addListener('place_changed', onPlaceChanged);
+            } else {
+                console.error("Address input element not found. Autocomplete could not be initialized.");
+            }
+        }
+
+        function onPlaceChanged() {
+            const place = autocomplete.getPlace();
+            const addressInput = document.getElementById('addressInput');
+            const errorMessage = document.getElementById('errorMessage');
+
+            if (!place.geometry) {
+                errorMessage.textContent = "No details available for input: '" + place.name + "'";
+                return;
+            }
+
+            if (place.formatted_address) {
+                addressInput.value = place.formatted_address;
+                errorMessage.textContent = '';
+            } else {
+                errorMessage.textContent = "Could not retrieve formatted address for the selected place.";
+            }
+        }
+
+
         document.addEventListener('DOMContentLoaded', () => {
             const addressInput = document.getElementById('addressInput');
             const searchButton = document.getElementById('searchButton');
@@ -101,6 +100,13 @@
             const resultsSection = document.getElementById('results');
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
             const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
+
+            // Inject the Google Maps API script dynamically after DOM is ready
+            // This ensures initAutocomplete is defined when the callback is fired.
+            const googleMapsScript = document.createElement('script');
+            googleMapsScript.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete";
+            document.head.appendChild(googleMapsScript);
+
 
             // Helper function to convert currency string to number
             function parseCurrencyToNumber(currencyString) {
