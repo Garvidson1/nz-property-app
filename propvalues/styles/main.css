@@ -269,4 +269,31 @@ td.py-3.px-4.font-bold.text-lg.text-green-700 {
         width: 100%; /* Make text content full width on mobile */
         text-align: center; /* Center text content on mobile */
     }
+
+    /* New rule for button placement on mobile */
+    .flex.items-center.w-full.mb-8 { /* This is the div wrapping your input and button */
+        flex-direction: column; /* Stack items vertically */
+        align-items: stretch; /* Make items stretch to full width */
+    }
+
+    #addressInput {
+        width: 100%; /* Ensure input takes full width */
+        margin-bottom: 10px; /* Add space below the input */
+        border-radius: 15px; /* Re-apply full border-radius for standalone input */
+    }
+
+    button#searchButton {
+        width: 100%; /* Ensure button takes full width */
+        border-radius: 15px; /* Re-apply full border-radius for standalone button */
+        padding-left: 1rem; /* Smaller padding */
+        padding-right: 1rem; /* Smaller padding */
+    }
+
+    /* Hiding long text and showing short text for the button on mobile */
+    .long-text {
+        display: none;
+    }
+    .short-text {
+        display: inline;
+    }
 }
