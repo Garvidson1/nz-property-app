@@ -51,7 +51,7 @@ button {
 /* Summary Data Section */
 #summaryData {
     display: none; /* Hidden by default */
-    flex-direction: row;
+    flex-direction: row; /* Default to row for larger screens */
     gap: 20px;
     margin-top: 20px;
     padding-top: 20px;
@@ -242,24 +242,31 @@ td.py-3.px-4.font-bold.text-lg.text-green-700 {
     color: #0A0A0A; /* A slightly darker color for bolded text, or keep default */
 }
 
-/* ... existing CSS ... */
-
 /* Responsive button text for mobile */
 .short-text {
     display: none; /* Hide 'Find' by default on larger screens */
 }
 
 @media (max-width: 640px) { /* Adjust breakpoint as needed, e.g., for typical phone screens */
-    .long-text {
-        display: none; /* Hide 'Find property values' on small screens */
-    }
-    .short-text {
-        display: inline; /* Show 'Find' on small screens */
+    /* Only change for the summary data layout */
+    #summaryData {
+        flex-direction: column; /* Stacks items vertically on small screens */
+        align-items: center; /* Centers items when stacked */
     }
 
-    /* Adjust button padding for smaller screens if necessary to make it fit better */
-    button#searchButton {
-        padding-left: 1rem; /* Smaller padding */
-        padding-right: 1rem; /* Smaller padding */
+    #summaryPhotoWrapper {
+        width: 100%; /* Make image full width on mobile */
+        height: auto; /* Allow height to adjust based on image aspect ratio */
+        margin-bottom: 15px; /* Add some space below the image when stacked */
+    }
+
+    #summaryPhotoWrapper img {
+        height: auto; /* Ensure image scales correctly within its wrapper */
+        object-fit: contain; /* Use contain so the full image is visible, no cropping */
+    }
+
+    #summaryTextContent {
+        width: 100%; /* Make text content full width on mobile */
+        text-align: center; /* Center text content on mobile */
     }
 }
