@@ -79,11 +79,53 @@
                 return;
             }
 
-            if (place.formatted_address) {
-                addressInput.value = place.formatted_address;
+            let addressComponents = [];
+            let streetNumber = '';
+            let route = '';
+            let sublocality = ''; // For suburbs
+            let locality = ''; // For main city if sublocality isn't present or preferred
+
+            for (let i = 0; i < place.address_components.length; i++) {
+                const component = place.address_components[i];
+                const type = component.types[0];
+
+                if (type === 'street_number') {
+                    streetNumber = component.long_name;
+                } else if (type === 'route') {
+                    route = component.long_name;
+                } else if (type === 'sublocality_level_1' || type === 'sublocality') {
+                    // This typically captures the suburb/neighborhood
+                    sublocality = component.long_name;
+                } else if (type === 'locality' && !sublocality) { // Only use locality if no sublocality is found
+                    // This captures the main city, but we generally want to exclude it if a sublocality is present.
+                    // This is a fallback if a precise suburb isn't given but a city is.
+                    locality = component.long_name;
+                }
+            }
+
+            // Reconstruct the address, prioritizing street number, route, then sublocality.
+            if (streetNumber && route) {
+                addressComponents.push(`${streetNumber} ${route}`);
+            } else if (route) {
+                addressComponents.push(route);
+            }
+
+            if (sublocality) {
+                addressComponents.push(sublocality);
+            } else if (locality) { // Fallback to city if no sublocality (suburb)
+                addressComponents.push(locality);
+            }
+
+            const desiredAddress = addressComponents.join(', ');
+
+            if (desiredAddress) {
+                addressInput.value = desiredAddress;
                 errorMessage.textContent = '';
             } else {
-                errorMessage.textContent = "Could not retrieve formatted address for the selected place.";
+                // Fallback to original formatted_address if parsing fails, but show a warning
+                addressInput.value = place.formatted_address;
+                errorMessage.textContent = "Could not parse specific address components, using full address.";
+                console.warn("Failed to parse desired address components. Using full formatted_address:", place.formatted_address);
             }
         }
 
