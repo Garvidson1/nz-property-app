@@ -235,3 +235,9 @@ button {
 td.py-3.px-4.font-bold.text-lg.text-green-700 {
     text-align: center;
 }
+
+/* New rule for bolding min/max values in table */
+.bold-value {
+    font-weight: bold;
+    color: #0A0A0A; /* A slightly darker color for bolded text, or keep default */
+}
