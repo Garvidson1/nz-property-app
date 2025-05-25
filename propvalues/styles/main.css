@@ -1,33 +1,111 @@
-/* General Body and Container Styles (assuming these exist, if not, add as needed) */
+/* General Body and Container Styles (You might already have some of these) */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
-    padding: 0;
-    background-color: #f0f4f8; /* Light background for the page */
+    padding: 20px;
+    background-color: #f3f4f6; /* A light gray background */
     color: #333;
+    line-height: 1.6;
 }
 
 .container {
-    max-width: 960px;
+    max-width: 900px;
     margin: 40px auto;
+    background-color: #fff;
     padding: 30px;
-    background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Input and Button Styling (already handled by Tailwind, but adding for context) */
-.flex-grow.border {
-    border-radius: 15px 0 0 15px; /* Rounded left corners for input */
+/* Heading Styles */
+h1 {
+    color: #1a202c; /* Matches text-gray-800 from Tailwind */
+    font-size: 2.25rem; /* Equivalent to text-3xl */
+    font-weight: 700; /* Equivalent to font-bold */
+    text-align: center;
+    margin-bottom: 2rem; /* Equivalent to mb-8 */
 }
 
-button {
-    border-radius: 0px 15px 15px 0px; /* Rounded right corners for button */
+h2 {
+    font-size: 1.5rem; /* You might want to adjust this, it's not explicitly in your HTML but implied */
+    font-weight: 600;
+    color: #1a202c;
+    margin-top: 2rem; /* Equivalent to mt-8 */
+    margin-bottom: 1rem;
 }
 
-/* Loading Spinner and Error Message */
+/* Input and Button Container */
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.mb-8 {
+    margin-bottom: 2rem;
+}
+
+/* Input Field */
+#addressInput {
+    border-color: #d1d5db; /* Matches border-gray-300 */
+    border-width: 1px;
+    padding-top: 0.5rem; /* py-2 */
+    padding-bottom: 0.5rem; /* py-2 */
+    padding-left: 1rem; /* px-4 */
+    padding-right: 1rem; /* px-4 */
+    outline: none; /* focus:outline-none */
+    flex-grow: 1; /* flex-grow */
+    border-radius: 0.25rem; /* Small border-radius, not explicit in Tailwind classes you used but common */
+}
+
+#addressInput:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* focus:ring-2 focus:ring-blue-500 */
+    border-color: #3b82f6; /* focus:border-blue-500, not explicit but good practice */
+}
+
+/* Search Button */
+#searchButton {
+    background-color: #1f2937; /* Matches bg-gray-800 */
+    color: #fff; /* text-white */
+    padding-left: 1.5rem; /* px-6 */
+    padding-right: 1.5rem; /* px-6 */
+    padding-top: 0.5rem; /* py-2 */
+    padding-bottom: 0.5rem; /* py-2 */
+    font-weight: 600; /* font-semibold */
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-top-right-radius: 0.25rem; /* To match input visually if input has rounded corners */
+    border-bottom-right-radius: 0.25rem; /* To match input visually if input has rounded corners */
+}
+
+#searchButton:hover {
+    background-color: #374151; /* hover:bg-gray-700 */
+}
+
+#searchButton:focus {
+    outline: none; /* focus:outline-none */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* focus:ring-2 focus:ring-blue-500 */
+}
+
+/* Responsive button text for mobile */
+.long-text {
+    display: inline; /* Show 'Find property values' by default on larger screens */
+}
+
+.short-text {
+    display: none; /* Hide 'Find' by default on larger screens */
+}
+
+
+/* Loading Spinner */
 .loading-spinner {
-    display: none; /* Hidden by default */
     border: 4px solid #f3f3f3;
     border-top: 4px solid #3498db;
     border-radius: 50%;
@@ -35,6 +113,7 @@ button {
     height: 30px;
     animation: spin 1s linear infinite;
     margin: 20px auto;
+    display: none; /* Hidden by default */
 }
 
 @keyframes spin {
@@ -42,214 +121,207 @@ button {
     100% { transform: rotate(360deg); }
 }
 
+/* Error Message */
 .error-message {
-    color: red;
+    color: #ef4444; /* text-red-500 */
     text-align: center;
-    margin-top: 10px;
+    margin-top: 1rem;
+    font-weight: 600;
 }
 
 /* Summary Data Section */
 #summaryData {
-    display: none; /* Hidden by default */
-    flex-direction: row;
-    gap: 20px;
+    display: flex; /* Keeps them side-by-side on larger screens */
+    flex-wrap: nowrap; /* Prevents wrapping by default */
+    align-items: flex-start; /* Aligns items to the top */
+    gap: 20px; /* Space between image and text */
     margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
-    align-items: flex-start;
+    margin-bottom: 20px;
+    background-color: #f9fafb; /* Light background for summary */
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 #summaryPhotoWrapper {
-    flex-shrink: 0;
-    width: 200px; /* Fixed width for the image container */
-    height: 150px; /* Fixed height for the image container */
-    overflow: hidden; /* Hide overflow if image is larger */
-    border-radius: 4px;
-    background-color: #e2e8f0; /* Placeholder background */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-shrink: 0; /* Prevents image from shrinking */
+    width: 250px; /* Adjust as needed for desktop size */
+    max-width: 100%;
 }
 
 #summaryPhotoWrapper img {
     max-width: 100%;
-    max-height: 100%;
-    object-fit: cover; /* Ensures the image covers the area without distortion */
+    height: auto;
+    display: block;
+    border-radius: 8px; /* Optional: adds rounded corners to the image */
 }
 
 #summaryTextContent {
-    flex-grow: 1;
-    font-size: 0.95rem;
-    line-height: 1.6;
+    flex-grow: 1; /* Allows text content to take up remaining space */
 }
 
 .property-value-detail {
-    margin-bottom: 5px;
-}
-.property-value-detail strong {
-    color: #555;
+    margin-bottom: 8px; /* Spacing between each detail line */
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
+.property-value-detail strong {
+    margin-right: 5px;
+    color: #4a5568; /* Slightly darker for labels */
+}
 
 /* Results Section */
 #results {
     display: none; /* Hidden by default */
-    margin-top: 30px;
 }
 
-#results h2 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #4a5568;
-    margin-bottom: 15px;
-    margin-top: 10px;
+/* Table Styles */
+#estimatedValuesTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
 }
 
+#estimatedValuesTable thead tr {
+    background-color: #e5e7eb; /* bg-gray-100 */
+    color: #4b5563; /* text-gray-600 */
+    text-align: left;
+    font-size: 0.875rem; /* text-sm */
+    text-transform: uppercase; /* uppercase */
+    letter-spacing: 0.05em; /* tracking-wider */
+}
+
+#estimatedValuesTable th,
+#estimatedValuesTable td {
+    padding: 0.75rem 1rem; /* py-3 px-4 */
+    border-bottom: 1px solid #e5e7eb; /* border-b border-gray-200 */
+    text-align: left;
+}
+
+#estimatedValuesTable tbody tr:nth-child(even) {
+    background-color: #f9fafb; /* subtle stripe */
+}
+
+#estimatedValuesTable tbody tr:hover {
+    background-color: #f3f4f6; /* hover effect */
+}
+
+#estimatedValuesTable .text-blue-700 {
+    color: #1d4ed8;
+}
+
+#estimatedValuesTable .text-blue-700:hover {
+    text-decoration: underline;
+}
+
+#estimatedValuesTable .font-medium {
+    font-weight: 500;
+}
+
+/* Table Footer (Average) */
+#estimatedValuesTableFoot tr {
+    background-color: #f9fafb; /* bg-gray-50 */
+    color: #374151; /* text-gray-700 */
+    font-weight: 600; /* font-semibold */
+}
+
+#estimatedValuesTableFoot td {
+    padding-top: 0.75rem; /* py-3 */
+    padding-bottom: 0.75rem; /* py-3 */
+    padding-left: 1rem; /* px-4 */
+    padding-right: 1rem; /* px-4 */
+    text-align: right; /* text-right */
+    font-size: 1.125rem; /* text-lg */
+}
+
+#estimatedValuesTableFoot .text-green-700 {
+    color: #047857;
+}
+
+#estimatedValuesTableFoot .text-xs {
+    font-size: 0.75rem;
+}
+
+#estimatedValuesTableFoot .font-normal {
+    font-weight: 400;
+}
+
+#estimatedValuesTableFoot .text-gray-500 {
+    color: #6b7280;
+}
+
+/* URL List */
 #urlList {
     list-style: none;
     padding: 0;
-    margin-top: 20px;
-    border-top: 1px solid #e2e8f0;
-    padding-top: 20px;
+    margin-top: 1rem;
 }
 
 #urlList li {
+    margin-bottom: 0.5rem;
     display: flex;
-    align-items: baseline;
-    margin-bottom: 10px;
-    padding: 8px 0;
-    border-bottom: 1px dashed #e2e8f0;
-}
-
-#urlList li:last-child {
-    border-bottom: none;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap; /* Allow wrapping for long URLs */
 }
 
 #urlList li .site-name {
     font-weight: 600;
-    color: #2d3748;
-    min-width: 150px; /* Adjust as needed */
-    flex-shrink: 0;
+    color: #1f2937;
+    flex-shrink: 0; /* Prevent site name from shrinking */
 }
 
 #urlList li a {
-    color: #2b6cb0;
+    color: #2563eb; /* Blue for links */
     text-decoration: none;
-    word-break: break-all;
-    font-size: small;
+    word-break: break-all; /* Break long URLs */
 }
 
 #urlList li a:hover {
     text-decoration: underline;
 }
 
-#urlList li .no-link {
-    color: #e53e3e;
+.no-link {
+    color: #dc2626; /* Red for errors */
     font-style: italic;
-    font-size: small;
 }
 
-
-/* Google Places Autocomplete Styles */
-
-/* Ensure the parent of the address input has position: relative */
-/* This is crucial for positioning the .pac-container correctly */
-.flex.items-center.w-full.mb-8 {
-    position: relative; /* Keep this */
-}
-
-/* Styles for the suggestions container */
-.pac-container {
-    background-color: #fff;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    width: 100%;
-    border: 1px solid #cbd5e0;
-    border-top: none;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 0 0 4px 4px;
-    overflow: hidden;
-}
-
-/* Styles for individual suggestion items */
-.pac-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    border-bottom: 1px solid #edf2f7;
-    font-size: 0.95rem;
-    color: #4a5568;
-}
-
-.pac-item:last-child {
-    border-bottom: none;
-}
-
-/* Hover state for suggestion items */
-.pac-item:hover {
-    background-color: #f7fafc;
-}
-
-/* Highlighted text within suggestion items */
-.pac-item-query {
-    font-weight: 600;
-    color: #2d3748;
-}
-
-/* Secondary text (e.g., "New Zealand") */
-.pac-item-selected {
-    background-color: #e2e8f0;
-}
-
-.pac-icon {
-    display: none;
-}
-
-/* Style for the "Powered by Google" text */
-.pac-controls {
-    text-align: right;
-    padding: 8px 15px;
-    font-size: 0.75rem;
-    color: #718096;
-}
-
-/* Disclaimer text styles */
+/* Disclaimer */
 .disclaimer-text {
-    margin-top: 40px; /* Space above the disclaimer */
+    font-size: 0.875rem; /* text-sm */
+    color: #6b7280; /* text-gray-500 */
     text-align: center;
-    font-size: 0.75rem; /* Small font size */
-    color: #718096; /* Gray color */
-    padding: 0 20px 20px; /* Some padding to prevent it from touching edges */
+    margin-top: 30px;
+    padding: 15px;
+    background-color: #f9fafb;
+    border-top: 1px solid #e5e7eb;
+    border-radius: 0 0 8px 8px; /* Rounded corners for the bottom */
 }
 
-/* Estimated Values Table */
-#estimatedValuesTable thead tr {
-    text-align: center; /* Changed from text-left to center */
-}
-
-#estimatedValuesTable tbody td {
-    text-align: center; /* Added for center alignment of data cells */
-}
-
-td.py-3.px-4.font-bold.text-lg.text-green-700 {
-    text-align: center;
-}
-
-/* New rule for bolding min/max values in table */
+/* Highlight (Bold) Values in Table */
 .bold-value {
     font-weight: bold;
-    color: #0A0A0A; /* A slightly darker color for bolded text, or keep default */
+    color: #059669; /* A distinct color for highlighted values, e.g., green */
 }
 
-/* ... existing CSS ... */
+/* Media query for mobile screens */
+@media (max-width: 640px) { /* Adjust breakpoint as needed for typical phone screens */
+    .container {
+        margin: 20px auto; /* Slightly less margin on mobile */
+        padding: 20px;
+    }
 
-/* Responsive button text for mobile */
-.short-text {
-    display: none; /* Hide 'Find' by default on larger screens */
-}
+    h1 {
+        font-size: 1.75rem; /* Smaller heading on mobile */
+    }
 
-@media (max-width: 640px) { /* Adjust breakpoint as needed, e.g., for typical phone screens */
+    /* Button text change */
+    #searchButton {
+        padding-left: 1rem; /* Smaller padding */
+        padding-right: 1rem; /* Smaller padding */
+    }
     .long-text {
         display: none; /* Hide 'Find property values' on small screens */
     }
@@ -257,9 +329,79 @@ td.py-3.px-4.font-bold.text-lg.text-green-700 {
         display: inline; /* Show 'Find' on small screens */
     }
 
-    /* Adjust button padding for smaller screens if necessary to make it fit better */
-    button#searchButton {
-        padding-left: 1rem; /* Smaller padding */
-        padding-right: 1rem; /* Smaller padding */
+    /* Summary data layout for mobile */
+    #summaryData {
+        flex-direction: column; /* Stacks items vertically on small screens */
+        align-items: center; /* Centers items when stacked */
+        gap: 15px; /* Adjust gap for mobile */
+    }
+
+    #summaryPhotoWrapper {
+        width: 100%; /* Make image full width on mobile */
+        margin-bottom: 0px; /* Remove extra space as gap handles it */
+    }
+
+    #summaryTextContent {
+        width: 100%; /* Make text content full width on mobile */
+        text-align: center; /* Center text content on mobile */
+    }
+
+    .property-value-detail {
+        margin-bottom: 5px; /* Slightly less spacing on mobile */
+        font-size: 0.95rem; /* Slightly smaller font */
+    }
+
+    /* Table adjustments for smaller screens if needed (optional) */
+    #estimatedValuesTable th,
+    #estimatedValuesTable td {
+        padding: 0.5rem 0.75rem; /* Reduce padding in table cells */
+    }
+
+    #estimatedValuesTable thead {
+        /* Optional: Hide table headers on very small screens if space is extremely tight */
+        /* display: none; */
+    }
+
+    #estimatedValuesTable tbody,
+    #estimatedValuesTable tr,
+    #estimatedValuesTable td {
+        display: block; /* Make table cells block-level */
+        width: 100%; /* Take full width */
+    }
+
+    #estimatedValuesTable tr {
+        margin-bottom: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 4px;
+    }
+
+    #estimatedValuesTable td {
+        text-align: right; /* Align value to right */
+        border-bottom: none; /* Remove individual cell borders */
+        position: relative;
+        padding-left: 50%; /* Make space for pseudo-element label */
+    }
+
+    #estimatedValuesTable td::before {
+        content: attr(data-label); /* Use data-label for content */
+        position: absolute;
+        left: 0;
+        width: 45%;
+        padding-left: 10px;
+        font-weight: 600;
+        text-align: left;
+        color: #4b5563;
+    }
+
+    /* Specific labels for table cells on mobile */
+    #estimatedValuesTable td:nth-of-type(1)::before { content: "Website:"; }
+    #estimatedValuesTable td:nth-of-type(2)::before { content: "Low:"; }
+    #estimatedValuesTable td:nth-of-type(3)::before { content: "Medium:"; }
+    #estimatedValuesTable td:nth-of-type(4)::before { content: "High:"; }
+
+    #estimatedValuesTableFoot td {
+        text-align: center; /* Center average value on mobile */
+        padding-top: 1rem;
+        padding-bottom: 1rem;
     }
 }
