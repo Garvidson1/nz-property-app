@@ -146,6 +146,7 @@ button {
 #urlList li .no-link {
     color: #e53e3e;
     font-style: italic;
+    font-size: small;
 }
 
 
