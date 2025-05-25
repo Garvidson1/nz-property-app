@@ -56,17 +56,14 @@
     </div>
 
     <script>
-        // Declare autocomplete globally so it can be accessed by both initAutocomplete and onPlaceChanged
         let autocomplete;
 
-        // Define initAutocomplete and onPlaceChanged in the global scope
-        // This ensures the Google Maps API can call them when it loads.
         function initAutocomplete() {
             const addressInput = document.getElementById('addressInput');
             if (addressInput) {
                 autocomplete = new google.maps.places.Autocomplete(addressInput, {
-                    types: ['address'], // Restrict to address results
-                    componentRestrictions: { 'country': ['nz'] } // Restrict to New Zealand addresses
+                    types: ['address'],
+                    componentRestrictions: { 'country': ['nz'] }
                 });
                 autocomplete.addListener('place_changed', onPlaceChanged);
             } else {
@@ -87,8 +84,8 @@
             let addressComponents = [];
             let streetNumber = '';
             let route = '';
-            let sublocality = ''; // For suburbs
-            let locality = ''; // For main city if sublocality isn't present or preferred
+            let sublocality = '';
+            let locality = '';
 
             for (let i = 0; i < place.address_components.length; i++) {
                 const component = place.address_components[i];
@@ -99,16 +96,12 @@
                 } else if (type === 'route') {
                     route = component.long_name;
                 } else if (type === 'sublocality_level_1' || type === 'sublocality') {
-                    // This typically captures the suburb/neighborhood
                     sublocality = component.long_name;
-                } else if (type === 'locality' && !sublocality) { // Only use locality if no sublocality is found
-                    // This captures the main city, but we generally want to exclude it if a sublocality is present.
-                    // This is a fallback if a precise suburb isn't given but a city is.
+                } else if (type === 'locality' && !sublocality) {
                     locality = component.long_name;
                 }
             }
 
-            // Reconstruct the address, prioritizing street number, route, then sublocality.
             if (streetNumber && route) {
                 addressComponents.push(`${streetNumber} ${route}`);
             } else if (route) {
@@ -117,7 +110,7 @@
 
             if (sublocality) {
                 addressComponents.push(sublocality);
-            } else if (locality) { // Fallback to city if no sublocality (suburb)
+            } else if (locality) {
                 addressComponents.push(locality);
             }
 
@@ -127,7 +120,6 @@
                 addressInput.value = desiredAddress;
                 errorMessage.textContent = '';
             } else {
-                // Fallback to original formatted_address if parsing fails, but show a warning
                 addressInput.value = place.formatted_address;
                 errorMessage.textContent = "Could not parse specific address components, using full address.";
                 console.warn("Failed to parse desired address components. Using full formatted_address:", place.formatted_address);
@@ -148,22 +140,17 @@
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
             const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
 
-            // Inject the Google Maps API script dynamically after DOM is ready
-            // This ensures initAutocomplete is defined when the callback is fired.
             const googleMapsScript = document.createElement('script');
             googleMapsScript.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete";
             document.head.appendChild(googleMapsScript);
 
 
-            // Helper function to convert currency string to number
             function parseCurrencyToNumber(currencyString) {
                 if (!currencyString || typeof currencyString !== 'string') {
                     return NaN;
                 }
-
                 let cleanedString = currencyString.replace(/[\$,]/g, '').trim();
                 let numericValue = parseFloat(cleanedString);
-
                 if (cleanedString.endsWith('M')) {
                     numericValue *= 1000000;
                 } else if (cleanedString.endsWith('K')) {
@@ -174,7 +161,6 @@
 
             function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
                 const listItem = document.createElement('li');
-
                 const nameSpan = document.createElement('span');
                 nameSpan.className = 'site-name';
                 nameSpan.textContent = siteName;
@@ -206,6 +192,10 @@
                 }
                 urlList.appendChild(listItem);
             }
+
+            // Global arrays to store values for bolding
+            let lowValuesForBolding = [];
+            let highValuesForBolding = [];
 
             function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
                 const row = estimatedValuesTableBody.insertRow();
@@ -248,17 +238,49 @@
                 websiteCell.className += ' py-2 px-4 border-b border-gray-200';
 
                 const lowCell = row.insertCell();
-                lowCell.textContent = estimatedValues.low || 'N/A';
+                const lowValue = estimatedValues.low || 'N/A';
+                lowCell.textContent = lowValue;
                 lowCell.className = 'py-2 px-4 border-b border-gray-200';
+                const numericLow = parseCurrencyToNumber(lowValue);
+                if (!isNaN(numericLow)) {
+                    lowValuesForBolding.push({ value: numericLow, cell: lowCell });
+                }
 
                 const mediumCell = row.insertCell();
                 mediumCell.textContent = estimatedValues.medium || 'N/A';
                 mediumCell.className = 'py-2 px-4 border-b border-gray-200';
 
                 const highCell = row.insertCell();
-                highCell.textContent = estimatedValues.high || 'N/A';
+                const highValue = estimatedValues.high || 'N/A';
+                highCell.textContent = highValue;
                 highCell.className = 'py-2 px-4 border-b border-gray-200';
+                const numericHigh = parseCurrencyToNumber(highValue);
+                if (!isNaN(numericHigh)) {
+                    highValuesForBolding.push({ value: numericHigh, cell: highCell });
+                }
             }
+
+            // New function to highlight min/max values
+            function highlightMinMaxValues() {
+                if (lowValuesForBolding.length > 0) {
+                    const minLowValue = Math.min(...lowValuesForBolding.map(item => item.value));
+                    lowValuesForBolding.forEach(item => {
+                        if (item.value === minLowValue) {
+                            item.cell.classList.add('bold-value');
+                        }
+                    });
+                }
+
+                if (highValuesForBolding.length > 0) {
+                    const maxHighValue = Math.max(...highValuesForBolding.map(item => item.value));
+                    highValuesForBolding.forEach(item => {
+                        if (item.value === maxHighValue) {
+                            item.cell.classList.add('bold-value');
+                        }
+                    });
+                }
+            }
+
 
             searchButton.addEventListener('click', async () => {
                 const address = addressInput.value.trim();
@@ -271,6 +293,10 @@
                 summaryPhotoWrapper.innerHTML = '';
                 summaryTextContent.innerHTML = '';
                 resultsSection.style.display = 'none';
+
+                // Reset bolding arrays for new search
+                lowValuesForBolding = [];
+                highValuesForBolding = [];
 
                 if (address === '') {
                     errorMessage.textContent = 'Please enter an address.';
@@ -423,6 +449,9 @@
                             displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, error || "Unknown error occurred.");
                         }
                     });
+
+                    // Call the new function to highlight min/max values after all rows are added
+                    highlightMinMaxValues();
 
                     if (mediumValues.length > 0) {
                         const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
