@@ -222,3 +222,12 @@ button {
     color: #718096; /* Gray color */
     padding: 0 20px 20px; /* Some padding to prevent it from touching edges */
 }
+
+/* Estimated Values Table */
+#estimatedValuesTable thead tr {
+    text-align: center; /* Changed from text-left to center */
+}
+
+#estimatedValuesTable tbody td {
+    text-align: center; /* Added for center alignment of data cells */
+}
