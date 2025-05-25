@@ -31,15 +31,13 @@ async function buildSite() {
         await fs.outputFile(DEST_INDEX_HTML_PATH, indexHtmlContent);
         console.log(`Modified index.html written to ${DEST_INDEX_HTML_PATH}`);
 
-        // 5. Copy static assets (CSS, JS, favicon, etc.) to the dist directory
+        // 5. Copy static assets (CSS, favicon, etc.) to the dist directory
+        // Assuming your 'styles' directory exists at the root level alongside index.html
         await fs.copy(path.join(SOURCE_DIR, 'styles'), path.join(DIST_DIR, 'styles'));
         console.log('Copied /styles directory.');
-        await fs.copy(path.join(SOURCE_DIR, 'js'), path.join(DIST_DIR, 'js')); // Assuming you have a /js folder for script.js
-        console.log('Copied /js directory.');
         await fs.copy(path.join(SOURCE_DIR, 'favicon.ico'), path.join(DIST_DIR, 'favicon.ico'));
         console.log('Copied favicon.ico.');
-        // Add more `await fs.copy()` lines here for any other static assets (e.g., images, other fonts)
-        // For example:
+        // If you have any other static assets like 'images' or 'fonts', add similar copy lines:
         // await fs.copy(path.join(SOURCE_DIR, 'images'), path.join(DIST_DIR, 'images'));
 
 
