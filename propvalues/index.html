@@ -143,8 +143,10 @@
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
             const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
 
+            // THIS IS THE LINE THAT NEEDS TO BE CHANGED IN YOUR index.html
+            // It will be replaced by the build.js script
             const googleMapsScript = document.createElement('script');
-            googleMapsScript.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete";
+            googleMapsScript.src = "https://maps.googleapis.com/maps/api/js?key=%%%PUBLIC_MAPS_API_KEY%%%&libraries=places&callback=initAutocomplete";
             document.head.appendChild(googleMapsScript);
 
 
