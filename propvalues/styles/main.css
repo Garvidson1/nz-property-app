@@ -231,3 +231,7 @@ button {
 #estimatedValuesTable tbody td {
     text-align: center; /* Added for center alignment of data cells */
 }
+
+td.py-3.px-4.font-bold.text-lg.text-green-700 {
+    text-align: center;
+}
