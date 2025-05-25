@@ -18,11 +18,11 @@ body {
 
 /* Input and Button Styling (already handled by Tailwind, but adding for context) */
 .flex-grow.border {
-    border-radius: 4px 0 0 4px; /* Rounded left corners for input */
+    border-radius: 15px 0 0 15px; /* Rounded left corners for input */
 }
 
 button {
-    border-radius: 0 4px 4px 0; /* Rounded right corners for button */
+    border-radius: 0px 15px 15px 0px; /* Rounded right corners for button */
 }
 
 /* Loading Spinner and Error Message */
