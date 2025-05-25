@@ -241,3 +241,25 @@ td.py-3.px-4.font-bold.text-lg.text-green-700 {
     font-weight: bold;
     color: #0A0A0A; /* A slightly darker color for bolded text, or keep default */
 }
+
+/* ... existing CSS ... */
+
+/* Responsive button text for mobile */
+.short-text {
+    display: none; /* Hide 'Find' by default on larger screens */
+}
+
+@media (max-width: 640px) { /* Adjust breakpoint as needed, e.g., for typical phone screens */
+    .long-text {
+        display: none; /* Hide 'Find property values' on small screens */
+    }
+    .short-text {
+        display: inline; /* Show 'Find' on small screens */
+    }
+
+    /* Adjust button padding for smaller screens if necessary to make it fit better */
+    button#searchButton {
+        padding-left: 1rem; /* Smaller padding */
+        padding-right: 1rem; /* Smaller padding */
+    }
+}
