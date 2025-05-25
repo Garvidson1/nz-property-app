@@ -159,10 +159,10 @@ button {
 /* Styles for the suggestions container */
 .pac-container {
     background-color: #fff;
-    position: absolute; /* No !important needed here, as we control the injection */
-    top: 100%;          /* No !important needed */
-    left: 0;            /* No !important needed */
-    width: 100%;        /* No !important needed */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
     border: 1px solid #cbd5e0;
     border-top: none;
     z-index: 1000;
@@ -210,4 +210,13 @@ button {
     padding: 8px 15px;
     font-size: 0.75rem;
     color: #718096;
+}
+
+/* Disclaimer text styles */
+.disclaimer-text {
+    margin-top: 40px; /* Space above the disclaimer */
+    text-align: center;
+    font-size: 0.75rem; /* Small font size */
+    color: #718096; /* Gray color */
+    padding: 0 20px 20px; /* Some padding to prevent it from touching edges */
 }
