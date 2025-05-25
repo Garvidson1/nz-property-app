@@ -152,55 +152,55 @@ button {
 /* Ensure the parent of the address input has position: relative */
 /* This is crucial for positioning the .pac-container correctly */
 .flex.items-center.w-full.mb-8 {
-    position: relative; /* Add this to the parent of addressInput and searchButton */
+    position: relative; /* Keep this */
 }
 
 /* Styles for the suggestions container */
 .pac-container {
     background-color: #fff;
-    position: absolute !important; /* Override Google's inline styles */
-    top: 100% !important; /* Position directly below the input */
-    left: 0 !important; /* Align with the left edge of the input's parent */
-    width: 100% !important; /* Match the width of the input's parent */
-    border: 1px solid #cbd5e0; /* Subtle border */
-    border-top: none; /* No top border, as it's below the input */
-    z-index: 1000; /* Ensure it appears above other content */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-    border-radius: 0 0 4px 4px; /* Rounded bottom corners */
-    overflow: hidden; /* Ensures rounded corners apply correctly to inner items */
+    position: absolute; /* No !important needed here, as we control the injection */
+    top: 100%;          /* No !important needed */
+    left: 0;            /* No !important needed */
+    width: 100%;        /* No !important needed */
+    border: 1px solid #cbd5e0;
+    border-top: none;
+    z-index: 1000;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 4px 4px;
+    overflow: hidden;
 }
 
 /* Styles for individual suggestion items */
 .pac-item {
     padding: 10px 15px;
     cursor: pointer;
-    border-bottom: 1px solid #edf2f7; /* Separator between items */
+    border-bottom: 1px solid #edf2f7;
     font-size: 0.95rem;
     color: #4a5568;
 }
 
 .pac-item:last-child {
-    border-bottom: none; /* No border on the last item */
+    border-bottom: none;
 }
 
 /* Hover state for suggestion items */
 .pac-item:hover {
-    background-color: #f7fafc; /* Light background on hover */
+    background-color: #f7fafc;
 }
 
 /* Highlighted text within suggestion items */
 .pac-item-query {
-    font-weight: 600; /* Make the matched part bolder */
+    font-weight: 600;
     color: #2d3748;
 }
 
 /* Secondary text (e.g., "New Zealand") */
 .pac-item-selected {
-    background-color: #e2e8f0; /* Background for selected item */
+    background-color: #e2e8f0;
 }
 
 .pac-icon {
-    display: none; /* Hide the default map pin icon if you don't want it */
+    display: none;
 }
 
 /* Style for the "Powered by Google" text */
