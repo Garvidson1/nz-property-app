@@ -303,3 +303,7 @@ td.py-3.px-4.font-bold.text-lg.text-green-700 {
     padding-bottom: 0.5rem;
     text-align: center;
 }
+.mt-4 {
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+}
