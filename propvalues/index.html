@@ -17,7 +17,8 @@
         <div class="flex items-center w-full mb-8">
             <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
             <button id="searchButton" class="bg-gray-800 text-white px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                Find property values
+                <span class="long-text">Find property values</span>
+                <span class="short-text">Find</span>
             </button>
         </div>
 
@@ -32,22 +33,21 @@
         <div id="results">
             <h2 class="mt-8">Estimated Values:</h2>
             <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 rounded-2xl overflow-hidden">
-                   <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
-                                
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated Value (Low)</th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated Value (Medium)</th>
-                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated Value (High)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="estimatedValuesTableBody">
-                        </tbody>
-                        <tfoot id="estimatedValuesTableFoot" class="bg-gray-50 text-right text-gray-700 font-semibold">
-                        </tfoot>
-                    </table>
+                <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
+                    <thead>
+                        <tr class="bg-gray-100 text-left text-sm text-gray-600 uppercase tracking-wider">
+                            <th class="py-3 px-4 border-b border-gray-200">Website</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Low</th>
+                            <th class="py-3 px-4 border-b border-gray-200">Medium</th>
+                            <th class="py-3 px-4 border-b border-gray-200">High</th>
+                        </tr>
+                    </thead>
+                    <tbody id="estimatedValuesTableBody">
+                    </tbody>
+                </table>
             </div>
+            <div id="estimatedValuesSummary" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center text-gray-800">
+                </div>
             <h2>Property Page Links</h2>
             <ul id="urlList">
             </ul>
@@ -141,7 +141,8 @@
             const summaryTextContent = document.getElementById('summaryTextContent');
             const resultsSection = document.getElementById('results');
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
-            const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
+            const estimatedValuesSummary = document.getElementById('estimatedValuesSummary'); // NEW: Get the new summary div
+
 
             const googleMapsScript = document.createElement('script');
             googleMapsScript.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete";
@@ -290,7 +291,8 @@
                 urlList.innerHTML = '';
                 errorMessage.textContent = '';
                 estimatedValuesTableBody.innerHTML = '';
-                estimatedValuesTableFoot.innerHTML = '';
+                estimatedValuesSummary.innerHTML = ''; // Clear the new summary div
+                estimatedValuesSummary.style.display = 'none'; // Hide it initially
 
                 summaryDataContainer.style.display = 'none';
                 summaryPhotoWrapper.innerHTML = '';
@@ -461,14 +463,14 @@
                         const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
                         const averageMedium = totalMedium / mediumValues.length;
 
-                        const footerRow = estimatedValuesTableFoot.insertRow();
-                        const avgLabelCell = footerRow.insertCell();
-                        avgLabelCell.colSpan = 2; // Spans "Website" and "Low"
-                        avgLabelCell.textContent = 'Average Medium Value:';
-                        avgLabelCell.className = 'py-3 px-4 text-right font-bold';
-
-                        const avgValueCell = footerRow.insertCell(); // This is the "Medium" column
-                        let avgMediumText = `$${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                        // Create the content for the new summary div
+                        let summaryContentHtml = `
+                            <div class="flex-1 text-left">
+                                <span class="font-bold">Average Medium Value:</span>
+                                <span class="text-lg font-bold text-green-700 ml-2">
+                                    $${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                </span>
+                        `;
 
                         if (!isNaN(pvCapitalValueNumeric)) {
                             const cvDifference = averageMedium - pvCapitalValueNumeric;
@@ -481,21 +483,14 @@
                             } else {
                                 differenceText = `$0 difference from CV`;
                             }
-                            avgMediumText += `<span class="text-xs font-normal text-gray-500 block">${differenceText}</span>`;
+                            summaryContentHtml += `<span class="text-sm font-normal text-gray-500 block">${differenceText}</span>`;
                         } else {
-                            avgMediumText += `<span class="text-xs font-normal text-gray-500 block">(Capital Value not available for comparison)</span>`;
+                            summaryContentHtml += `<span class="text-sm font-normal text-gray-500 block">(Capital Value not available for comparison)</span>`;
                         }
-
-                        avgValueCell.innerHTML = avgMediumText;
-                        avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
-
-                        // NEW CODE START - Rate of Return Calculation and Display (This is the "High" column)
-                        const rateOfReturnCell = footerRow.insertCell();
-                        rateOfReturnCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
+                        summaryContentHtml += `</div>`; // Close first flex item div
 
                         let rateOfReturnHtml = '';
                         if (pvDataForCalculation && pvDataForCalculation.lastSold && pvDataForCalculation.lastSold !== 'N/A' && pvDataForCalculation.lastSold !== 'Not Found on Page') {
-                            // Updated regex here for "Last Sold on 13 Oct 2018 for $1,260,000"
                             const lastSoldMatch = pvDataForCalculation.lastSold.match(/(\d{4})\s+for\s+\$?([0-9,.]+)/);
                             if (lastSoldMatch && lastSoldMatch.length === 3) {
                                 const lastSoldYear = parseInt(lastSoldMatch[1]);
@@ -505,18 +500,28 @@
 
                                 if (numberOfYears > 0 && lastSoldPrice > 0 && !isNaN(averageMedium) && averageMedium > 0) {
                                     const annualReturn = (Math.pow(averageMedium / lastSoldPrice, 1 / numberOfYears) - 1) * 100;
-                                    rateOfReturnHtml = `${annualReturn.toFixed(1)}%<span class="text-xs font-normal text-gray-500 block">p.a. since ${lastSoldYear}</span>`;
+                                    rateOfReturnHtml = `${annualReturn.toFixed(1)}%<span class="text-sm font-normal text-gray-500 block">p.a. since ${lastSoldYear}</span>`;
                                 } else {
-                                    rateOfReturnHtml = 'N/A<span class="text-xs font-normal text-gray-500 block">Cannot calculate</span>';
+                                    rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Cannot calculate</span>';
                                 }
                             } else {
-                                rateOfReturnHtml = 'N/A<span class="text-xs font-normal text-gray-500 block">Last sold data malformed</span>';
+                                rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Last sold data malformed</span>';
                             }
                         } else {
-                            rateOfReturnHtml = 'N/A<span class="text-xs font-normal text-gray-500 block">Last sold data missing</span>';
+                            rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Last sold data missing</span>';
                         }
-                        rateOfReturnCell.innerHTML = rateOfReturnHtml;
-                        // NEW CODE END
+
+                        summaryContentHtml += `
+                            <div class="flex-1 text-right">
+                                <span class="font-bold">Annual Return:</span>
+                                <span class="text-lg font-bold text-green-700 ml-2">
+                                    ${rateOfReturnHtml}
+                                </span>
+                            </div>
+                        `;
+
+                        estimatedValuesSummary.innerHTML = summaryContentHtml;
+                        estimatedValuesSummary.style.display = 'flex'; // Show the summary div
                     }
 
                     if (pvDataFound) {
