@@ -201,7 +201,7 @@
             let highValuesForBolding = [];
 
             function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
-                const row = estimatedValuesTableBody.insertRow();
+                const row = estimatedValuesTableBody.insertCell();
                 row.className = 'text-sm text-gray-800';
 
                 const websiteCell = row.insertCell();
@@ -373,6 +373,7 @@
 
                     let anyLinkGenerated = false;
                     let pvDataFound = false;
+                    let pvDataForCalculation = null; // New variable to store PropertyValue.co.nz data
                     let mediumValues = [];
                     let homesEstimatedValues = null;
                     let pvCapitalValueNumeric = NaN;
@@ -415,7 +416,7 @@
                                 }
                                 summaryTextContent.innerHTML = summaryHtml;
                                 pvDataFound = true;
-
+                                pvDataForCalculation = scrapedData; // Store the pvData
                                 if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A' && scrapedData.propertyPhotoSrc !== 'Not Found on Page') {
                                     const img = document.createElement('img');
                                     img.src = scrapedData.propertyPhotoSrc;
@@ -462,11 +463,11 @@
 
                         const footerRow = estimatedValuesTableFoot.insertRow();
                         const avgLabelCell = footerRow.insertCell();
-                        avgLabelCell.colSpan = 2;
+                        avgLabelCell.colSpan = 2; // Spans "Website" and "Low"
                         avgLabelCell.textContent = 'Average Medium Value:';
                         avgLabelCell.className = 'py-3 px-4 text-right font-bold';
 
-                        const avgValueCell = footerRow.insertCell();
+                        const avgValueCell = footerRow.insertCell(); // This is the "Medium" column
                         let avgMediumText = `$${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
 
                         if (!isNaN(pvCapitalValueNumeric)) {
@@ -488,7 +489,33 @@
                         avgValueCell.innerHTML = avgMediumText;
                         avgValueCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
 
-                        footerRow.insertCell().textContent = '';
+                        // NEW CODE START - Rate of Return Calculation and Display (This is the "High" column)
+                        const rateOfReturnCell = footerRow.insertCell();
+                        rateOfReturnCell.className = 'py-3 px-4 font-bold text-lg text-green-700';
+
+                        let rateOfReturnHtml = '';
+                        if (pvDataForCalculation && pvDataForCalculation.lastSold && pvDataForCalculation.lastSold !== 'N/A' && pvDataForCalculation.lastSold !== 'Not Found on Page') {
+                            const lastSoldMatch = pvDataForCalculation.lastSold.match(/(\d{4}): \$([0-9,.]+)/);
+                            if (lastSoldMatch && lastSoldMatch.length === 3) {
+                                const lastSoldYear = parseInt(lastSoldMatch[1]);
+                                const lastSoldPrice = parseCurrencyToNumber(lastSoldMatch[2]);
+                                const currentYear = new Date().getFullYear();
+                                const numberOfYears = currentYear - lastSoldYear;
+
+                                if (numberOfYears > 0 && lastSoldPrice > 0 && !isNaN(averageMedium) && averageMedium > 0) {
+                                    const annualReturn = (Math.pow(averageMedium / lastSoldPrice, 1 / numberOfYears) - 1) * 100;
+                                    rateOfReturnHtml = `${annualReturn.toFixed(1)}%<span class="text-xs font-normal text-gray-500 block">p.a. since ${lastSoldYear}</span>`;
+                                } else {
+                                    rateOfReturnHtml = 'N/A<span class="text-xs font-normal text-gray-500 block">Cannot calculate</span>';
+                                }
+                            } else {
+                                rateOfReturnHtml = 'N/A<span class="text-xs font-normal text-gray-500 block">Last sold data malformed</span>';
+                            }
+                        } else {
+                            rateOfReturnHtml = 'N/A<span class="text-xs font-normal text-gray-500 block">Last sold data missing</span>';
+                        }
+                        rateOfReturnCell.innerHTML = rateOfReturnHtml;
+                        // NEW CODE END
                     }
 
                     if (pvDataFound) {
