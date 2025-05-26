@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"> 
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,7 +26,6 @@
         <p class="error-message" id="errorMessage"></p>
 
         <div id="summaryData">
-            <div id="map" class="w-full h-64 bg-gray-200 mb-4 rounded-lg shadow-md" style="display: none;"></div>
             <div id="summaryPhotoWrapper"></div>
             <div id="summaryTextContent"></div>
         </div>
@@ -61,7 +60,6 @@
 
     <script>
         let autocomplete;
-        let map; // Declare map variable globally
 
         function initAutocomplete() {
             const addressInput = document.getElementById('addressInput');
@@ -76,38 +74,13 @@
             }
         }
 
-        // NEW CODE START: Function to initialize and display the map
-        function initMap(latitude, longitude) {
-            const mapDiv = document.getElementById('map');
-            if (mapDiv) {
-                mapDiv.style.display = 'block'; // Show the map container
-                const mapOptions = {
-                    center: { lat: latitude, lng: longitude },
-                    zoom: 15, // Adjust zoom level as needed
-                };
-                map = new google.maps.Map(mapDiv, mapOptions);
-
-                // Add a marker for the selected location
-                new google.maps.Marker({
-                    position: { lat: latitude, lng: longitude },
-                    map: map,
-                    title: 'Selected Property',
-                });
-            } else {
-                console.error("Map element not found. Map could not be initialized.");
-            }
-        }
-        // NEW CODE END
-
         function onPlaceChanged() {
             const place = autocomplete.getPlace();
             const addressInput = document.getElementById('addressInput');
             const errorMessage = document.getElementById('errorMessage');
-            const mapDiv = document.getElementById('map'); // Get map div
 
             if (!place.geometry) {
                 errorMessage.textContent = "No details available for input: '" + place.name + "'";
-                mapDiv.style.display = 'none'; // Hide map if no geometry
                 return;
             }
 
@@ -154,14 +127,6 @@
                 errorMessage.textContent = "Could not parse specific address components, using full address.";
                 console.warn("Failed to parse desired address components. Using full formatted_address:", place.formatted_address);
             }
-
-            // NEW CODE START: Call initMap with coordinates
-            if (place.geometry.location) {
-                initMap(place.geometry.location.lat(), place.geometry.location.lng());
-            } else {
-                mapDiv.style.display = 'none'; // Hide map if no location
-            }
-            // NEW CODE END
         }
 
 
@@ -177,11 +142,9 @@
             const resultsSection = document.getElementById('results');
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
             const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
-            const mapDiv = document.getElementById('map'); // Get map div reference
 
             const googleMapsScript = document.createElement('script');
-            // Ensure the Google Maps API script is loaded with 'places' and 'geometry' libraries
-            googleMapsScript.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places,geometry&callback=initAutocomplete";
+            googleMapsScript.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete";
             document.head.appendChild(googleMapsScript);
 
 
@@ -333,7 +296,6 @@
                 summaryPhotoWrapper.innerHTML = '';
                 summaryTextContent.innerHTML = '';
                 resultsSection.style.display = 'none';
-                mapDiv.style.display = 'none'; // Hide map on new search
 
                 // Reset bolding arrays for new search
                 lowValuesForBolding = [];
