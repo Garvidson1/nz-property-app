@@ -201,7 +201,7 @@
             let highValuesForBolding = [];
 
             function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
-                const row = estimatedValuesTableBody.insertCell();
+                const row = estimatedValuesTableBody.insertRow(); // FIX: Changed from insertCell() to insertRow()
                 row.className = 'text-sm text-gray-800';
 
                 const websiteCell = row.insertCell();
