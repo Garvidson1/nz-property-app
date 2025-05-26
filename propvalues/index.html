@@ -28,9 +28,6 @@
         <div id="summaryData">
             <div id="summaryPhotoWrapper"></div>
             <div id="summaryTextContent"></div>
-            <button id="viewOnMapButton" class="bg-blue-600 text-white px-4 py-2 mt-4 font-semibold hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" style="display: none;">
-                View on Map
-            </button>
         </div>
 
         <div id="results">
@@ -63,7 +60,6 @@
 
     <script>
         let autocomplete;
-        let currentAddressForMap = ''; // Declare global variable to store the address for the map button
 
         function initAutocomplete() {
             const addressInput = document.getElementById('addressInput');
@@ -82,12 +78,9 @@
             const place = autocomplete.getPlace();
             const addressInput = document.getElementById('addressInput');
             const errorMessage = document.getElementById('errorMessage');
-            const viewOnMapButton = document.getElementById('viewOnMapButton'); // Get button reference
 
             if (!place.geometry) {
                 errorMessage.textContent = "No details available for input: '" + place.name + "'";
-                currentAddressForMap = ''; // Clear if no geometry
-                viewOnMapButton.style.display = 'none'; // Hide button
                 return;
             }
 
@@ -129,14 +122,10 @@
             if (desiredAddress) {
                 addressInput.value = desiredAddress;
                 errorMessage.textContent = '';
-                currentAddressForMap = desiredAddress; // Store the address for the map button
-                viewOnMapButton.style.display = 'block'; // Show the button
             } else {
                 addressInput.value = place.formatted_address;
                 errorMessage.textContent = "Could not parse specific address components, using full address.";
                 console.warn("Failed to parse desired address components. Using full formatted_address:", place.formatted_address);
-                currentAddressForMap = place.formatted_address; // Store full address
-                viewOnMapButton.style.display = 'block'; // Show the button even with full address
             }
         }
 
@@ -153,7 +142,6 @@
             const resultsSection = document.getElementById('results');
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
             const estimatedValuesTableFoot = document.getElementById('estimatedValuesTableFoot');
-            const viewOnMapButton = document.getElementById('viewOnMapButton'); // Get button reference here too
 
             const googleMapsScript = document.createElement('script');
             googleMapsScript.src = "https://maps.googleapis.com/maps/api/js?key=AIzaSyA-fZpM1hyJCibvNuMjFGrikA0FqTRL9Gc&libraries=places&callback=initAutocomplete";
@@ -308,8 +296,6 @@
                 summaryPhotoWrapper.innerHTML = '';
                 summaryTextContent.innerHTML = '';
                 resultsSection.style.display = 'none';
-                viewOnMapButton.style.display = 'none'; // Hide the button at the start of a new search
-                currentAddressForMap = ''; // Clear the stored address
 
                 // Reset bolding arrays for new search
                 lowValuesForBolding = [];
@@ -553,17 +539,6 @@
                     searchButton.disabled = false;
                 }
             });
-
-            // Add click listener for the "View on Map" button
-            viewOnMapButton.addEventListener('click', () => {
-                if (currentAddressForMap) {
-                    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(currentAddressForMap)}`;
-                    window.open(googleMapsUrl, '_blank');
-                } else {
-                    alert('No address available to view on map.'); // This alert should ideally not be seen if the button is hidden
-                }
-            });
-
         });
     </script>
 </body>
