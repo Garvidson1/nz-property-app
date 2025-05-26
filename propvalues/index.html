@@ -201,7 +201,7 @@
             let highValuesForBolding = [];
 
             function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
-                const row = estimatedValuesTableBody.insertRow(); // FIX: Changed from insertCell() to insertRow()
+                const row = estimatedValuesTableBody.insertRow();
                 row.className = 'text-sm text-gray-800';
 
                 const websiteCell = row.insertCell();
@@ -373,7 +373,7 @@
 
                     let anyLinkGenerated = false;
                     let pvDataFound = false;
-                    let pvDataForCalculation = null; // New variable to store PropertyValue.co.nz data
+                    let pvDataForCalculation = null;
                     let mediumValues = [];
                     let homesEstimatedValues = null;
                     let pvCapitalValueNumeric = NaN;
@@ -416,7 +416,7 @@
                                 }
                                 summaryTextContent.innerHTML = summaryHtml;
                                 pvDataFound = true;
-                                pvDataForCalculation = scrapedData; // Store the pvData
+                                pvDataForCalculation = scrapedData;
                                 if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A' && scrapedData.propertyPhotoSrc !== 'Not Found on Page') {
                                     const img = document.createElement('img');
                                     img.src = scrapedData.propertyPhotoSrc;
@@ -495,7 +495,8 @@
 
                         let rateOfReturnHtml = '';
                         if (pvDataForCalculation && pvDataForCalculation.lastSold && pvDataForCalculation.lastSold !== 'N/A' && pvDataForCalculation.lastSold !== 'Not Found on Page') {
-                            const lastSoldMatch = pvDataForCalculation.lastSold.match(/(\d{4}): \$([0-9,.]+)/);
+                            // Updated regex here for "Last Sold on 13 Oct 2018 for $1,260,000"
+                            const lastSoldMatch = pvDataForCalculation.lastSold.match(/(\d{4})\s+for\s+\$?([0-9,.]+)/);
                             if (lastSoldMatch && lastSoldMatch.length === 3) {
                                 const lastSoldYear = parseInt(lastSoldMatch[1]);
                                 const lastSoldPrice = parseCurrencyToNumber(lastSoldMatch[2]);
