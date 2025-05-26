@@ -62,7 +62,7 @@ button {
 #summaryPhotoWrapper {
     flex-shrink: 0;
     width: 200px; /* Fixed width for the image container */
-    height: 150px; /* Fixed height for the image container */
+    height: 135px; /* Fixed height for the image container */
     overflow: hidden; /* Hide overflow if image is larger */
     border-radius: 4px;
     background-color: #e2e8f0; /* Placeholder background */
