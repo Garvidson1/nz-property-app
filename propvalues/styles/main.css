@@ -1,40 +1,80 @@
-/* General Body and Container Styles (assuming these exist, if not, add as needed) */
+/* Sticky header for search input */
+.sticky-header-container {
+    position: sticky;
+    top: 0; /* Pins the element to the top of the viewport */
+    z-index: 1000; /* Ensures it stays on top of other content */
+    width: 100%; /* Ensures it takes full width */
+    box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+    /* Tailwind classes bg-white p-4 shadow-md are already added in HTML */
+}
+
+/* Optional: Add some padding to the body or main content to prevent content from hiding under the sticky header */
+body {
+    padding-top: 20px; /* Adjust as needed, based on the height of your sticky header */
+}
+
+/* Base styles for the entire page */
 body {
     font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f0f4f8; /* Light background for the page */
-    color: #333;
+    background-color: #f3f4f6; /* Light gray background */
+    color: #374151; /* Dark gray text */
+    line-height: 1.6;
+    padding-bottom: 50px; /* Add some space at the bottom */
 }
 
 .container {
-    max-width: 960px;
-    margin: 40px auto;
-    padding: 30px;
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
     background-color: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Input and Button Styling (already handled by Tailwind, but adding for context) */
-.flex-grow.border {
-    border-radius: 15px 0 0 15px; /* Rounded left corners for input */
+h1 {
+    font-size: 2.25rem; /* 36px */
+    line-height: 2.5rem; /* 40px */
+    margin-bottom: 1.5rem; /* 24px */
+    color: #1f2937; /* Even darker gray for headings */
+}
+
+h2 {
+    font-size: 1.5rem; /* 24px */
+    line-height: 2rem; /* 32px */
+    font-weight: 600; /* semibold */
+    color: #1f2937;
+    margin-top: 2rem; /* 32px */
+    margin-bottom: 1rem; /* 16px */
+}
+
+input[type="text"] {
+    border-radius: 0.375rem; /* 6px */
+    transition: all 0.2s ease-in-out;
+}
+
+input[type="text"]:focus {
+    border-color: #3b82f6; /* blue-500 */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* ring-blue-500 */
 }
 
 button {
-    border-radius: 0px 15px 15px 0px; /* Rounded right corners for button */
+    border-radius: 0.375rem; /* 6px */
+    transition: background-color 0.2s ease-in-out;
 }
 
-/* Loading Spinner and Error Message */
+button:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* ring-blue-500 */
+}
+
 .loading-spinner {
-    display: none; /* Hidden by default */
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #3b82f6; /* Blue */
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     animation: spin 1s linear infinite;
     margin: 20px auto;
+    display: none; /* Hidden by default */
 }
 
 @keyframes spin {
@@ -43,257 +83,148 @@ button {
 }
 
 .error-message {
-    color: red;
+    color: #ef4444; /* Red */
     text-align: center;
-    margin-top: 10px;
-}
-
-/* Summary Data Section */
-#summaryData {
-    display: none; /* Hidden by default */
-    flex-direction: row; /* Default to row for larger screens */
-    gap: 20px;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
-    align-items: flex-start;
-}
-
-#summaryPhotoWrapper {
-    flex-shrink: 0;
-    width: 200px; /* Fixed width for the image container */
-    height: 150px; /* Fixed height for the image container */
-    overflow: hidden; /* Hide overflow if image is larger */
-    border-radius: 4px;
-    background-color: #e2e8f0; /* Placeholder background */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#summaryPhotoWrapper img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: cover; /* Ensures the image covers the area without distortion */
-}
-
-#summaryTextContent {
-    flex-grow: 1;
-    font-size: 0.95rem;
-    line-height: 1.6;
-}
-
-.property-value-detail {
-    margin-bottom: 5px;
-}
-.property-value-detail strong {
-    color: #555;
-}
-
-
-/* Results Section */
-#results {
-    display: none; /* Hidden by default */
-    margin-top: 30px;
-}
-
-#results h2 {
-    font-size: 1.5rem;
+    margin-top: 15px;
     font-weight: 600;
-    color: #4a5568;
-    margin-bottom: 15px;
-    margin-top: 10px;
 }
 
 #urlList {
     list-style: none;
     padding: 0;
-    margin-top: 20px;
-    border-top: 1px solid #e2e8f0;
-    padding-top: 20px;
+    margin-top: 15px;
 }
 
 #urlList li {
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    padding: 10px 15px;
+    margin-bottom: 8px;
+    border-radius: 5px;
     display: flex;
-    align-items: baseline;
-    margin-bottom: 10px;
-    padding: 8px 0;
-    border-bottom: 1px dashed #e2e8f0;
-}
-
-#urlList li:last-child {
-    border-bottom: none;
+    flex-direction: column;
+    align-items: flex-start;
 }
 
 #urlList li .site-name {
-    font-weight: 600;
-    color: #2d3748;
-    min-width: 150px; /* Adjust as needed */
-    flex-shrink: 0;
+    font-weight: bold;
+    color: #1f2937;
+    margin-bottom: 5px;
 }
 
 #urlList li a {
-    color: #2b6cb0;
-    text-decoration: none;
-    word-break: break-all;
-    font-size: small;
-}
-
-#urlList li a:hover {
+    color: #2563eb; /* Blue-700 */
     text-decoration: underline;
+    word-break: break-all;
 }
 
 #urlList li .no-link {
-    color: #e53e3e;
     font-style: italic;
-    font-size: small;
+    color: #6b7280; /* Gray-500 */
 }
 
-
-/* Google Places Autocomplete Styles */
-
-/* Ensure the parent of the address input has position: relative */
-/* This is crucial for positioning the .pac-container correctly */
-.flex.items-center.w-full.mb-8 {
-    position: relative; /* Keep this */
-}
-
-/* Styles for the suggestions container */
-.pac-container {
-    background-color: #fff;
-    position: absolute;
-    top: 100%;
-    left: 0;
+table {
     width: 100%;
-    border: 1px solid #cbd5e0;
-    border-top: none;
-    z-index: 1000;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 0 0 4px 4px;
-    overflow: hidden;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
 }
 
-/* Styles for individual suggestion items */
-.pac-item {
-    padding: 10px 15px;
-    cursor: pointer;
-    border-bottom: 1px solid #edf2f7;
-    font-size: 0.95rem;
-    color: #4a5568;
+th, td {
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.pac-item:last-child {
-    border-bottom: none;
-}
-
-/* Hover state for suggestion items */
-.pac-item:hover {
-    background-color: #f7fafc;
-}
-
-/* Highlighted text within suggestion items */
-.pac-item-query {
+th {
+    background-color: #f3f4f6;
     font-weight: 600;
-    color: #2d3748;
-}
-
-/* Secondary text (e.g., "New Zealand") */
-.pac-item-selected {
-    background-color: #e2e8f0;
-}
-
-.pac-icon {
-    display: none;
-}
-
-/* Style for the "Powered by Google" text */
-.pac-controls {
-    text-align: right;
-    padding: 8px 15px;
+    color: #4b5563;
+    text-transform: uppercase;
     font-size: 0.75rem;
-    color: #718096;
 }
 
-/* Disclaimer text styles */
-.disclaimer-text {
-    margin-top: 40px; /* Space above the disclaimer */
-    text-align: center;
-    font-size: 0.75rem; /* Small font size */
-    color: #718096; /* Gray color */
-    padding: 0 20px 20px; /* Some padding to prevent it from touching edges */
+td {
+    color: #374151;
 }
 
-/* Estimated Values Table */
-#estimatedValuesTable thead tr {
-    text-align: center; /* Changed from text-left to center */
-}
-
-#estimatedValuesTable tbody td {
-    text-align: center; /* Added for center alignment of data cells */
-}
-
-td.py-3.px-4.font-bold.text-lg.text-green-700 {
-    text-align: center;
-}
-
-/* New rule for bolding min/max values in table */
 .bold-value {
     font-weight: bold;
-    color: #0A0A0A; /* A slightly darker color for bolded text, or keep default */
+    color: #10b981; /* Green-500 */
 }
 
-/* Responsive button text for mobile */
-.short-text {
-    display: none; /* Hide 'Find' by default on larger screens */
+#summaryData {
+    display: flex;
+    flex-direction: column; /* Stack photo and text on small screens */
+    gap: 20px;
+    margin-top: 2rem;
+    padding: 20px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    display: none; /* Hidden by default, shown when data is available */
 }
 
-@media (max-width: 640px) { /* Adjust breakpoint as needed, e.g., for typical phone screens */
-    /* Only change for the summary data layout */
+@media (min-width: 768px) { /* On medium screens and up */
     #summaryData {
-        flex-direction: column; /* Stacks items vertically on small screens */
-        align-items: center; /* Centers items when stacked */
+        flex-direction: row; /* Align photo and text side-by-side */
     }
+}
 
-    #summaryPhotoWrapper {
-        width: 100%; /* Make image full width on mobile */
-        height: auto; /* Allow height to adjust based on image aspect ratio */
-        margin-bottom: 15px; /* Add some space below the image when stacked */
-    }
 
-    #summaryPhotoWrapper img {
-        height: auto; /* Ensure image scales correctly within its wrapper */
-        object-fit: contain; /* Use contain so the full image is visible, no cropping */
-    }
+#summaryPhotoWrapper {
+    flex-shrink: 0; /* Don't shrink the photo container */
+    width: 100%; /* Full width on small screens */
+    max-width: 300px; /* Limit width on larger screens */
+    text-align: center;
+}
 
-    #summaryTextContent {
-        width: 100%; /* Make text content full width on mobile */
-        text-align: center; /* Center text content on mobile */
-    }
+#summaryPhotoWrapper img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
 
-    /* New rule for button placement on mobile */
-    .flex.items-center.w-full.mb-8 { /* This is the div wrapping your input and button */
-        flex-direction: column; /* Stack items vertically */
-        align-items: stretch; /* Make items stretch to full width */
-    }
+#summaryTextContent {
+    flex-grow: 1; /* Allow text content to take remaining space */
+    color: #374151;
+}
 
-    #addressInput {
-        width: 100%; /* Ensure input takes full width */
-        margin-bottom: 10px; /* Add space below the input */
-        border-radius: 15px; /* Re-apply full border-radius for standalone input */
-    }
+#summaryTextContent .property-value-detail {
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
 
-    button#searchButton {
-        width: 100%; /* Ensure button takes full width */
-        border-radius: 15px; /* Re-apply full border-radius for standalone button */
-        padding-left: 1rem; /* Smaller padding */
-        padding-right: 1rem; /* Smaller padding */
-    }
+#summaryTextContent .property-value-detail strong {
+    color: #1f2937;
+    min-width: 120px; /* Ensure labels align */
+    display: inline-block;
+}
 
-    /* Hiding long text and showing short text for the button on mobile */
+.disclaimer-text {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: center;
+    margin-top: 30px;
+    padding: 0 20px;
+}
+
+/* Adjust button text for smaller screens */
+@media (max-width: 640px) {
     .long-text {
         display: none;
     }
     .short-text {
         display: inline;
+    }
+}
+
+@media (min-width: 641px) {
+    .long-text {
+        display: inline;
+    }
+    .short-text {
+        display: none;
     }
 }
