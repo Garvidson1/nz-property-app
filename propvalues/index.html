@@ -16,7 +16,10 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
+        <div class="logo-and-heading">
+            <img src="/android-chrome-192x192.png" alt="NZ Property App Logo" class="site-logo">
+            <h1 class="text-3xl font-bold text-gray-800 text-center mb-8 page-heading">Find Your Property Values</h1>
+        </div>
 
         <div class="flex items-center w-full mb-8">
             <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -174,8 +177,8 @@
                     // Make a request to your Vercel API route
                     const response = await fetch('/api/get-google-maps-key');
                     if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `Failed to fetch API key: ${response.statusText}`);
+                        const errorData = await response.json().catch(() => ({ error: `Failed to parse error from URL API` }));
+                        throw new Error(errorData.error || `HTTP error! Status: ${response.status} from URL API`);
                     }
                     const data = await response.json();
                     const googleMapsApiKey = data.apiKey;
