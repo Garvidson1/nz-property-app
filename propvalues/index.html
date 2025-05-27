@@ -26,7 +26,7 @@
             </button>
         </div>
 
-        <div class="text-center text-gray-600 mb-8 p-4 bg-gray-50 rounded-lg shadow-sm">
+        <div id="introductoryText" class="text-center text-gray-600 mb-8 p-4 bg-gray-50 rounded-lg shadow-sm">
             <p class="mb-2"><strong>Unlock comprehensive property insights across New Zealand.</strong></p>
             <p class="mb-2">Simply enter any New Zealand address to instantly access estimated property values, recent sales data, and market trends from the leading property websites including Homes.co.nz, OneRoof, QV, RealEstate.co.nz, TradeMe Property Insights, and PropertyValue.co.nz.</p>
             <p>Whether you're buying, selling, or just curious, get all the information you need in one convenient place to make informed decisions about property in NZ.</p>
@@ -151,46 +151,8 @@
             const summaryTextContent = document.getElementById('summaryTextContent');
             const resultsSection = document.getElementById('results');
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
-            const estimatedValuesSummary = document.getElementById('estimatedValuesSummary'); // NEW: Get the new summary div
-
-            // --- START OF MODIFICATION ---
-
-            // Function to load Google Maps script after fetching the key
-            async function loadGoogleMapsScript() {
-                try {
-                    // Make a request to your Vercel API route
-                    const response = await fetch('/api/get-google-maps-key'); // Adjust path if your API route is nested
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        throw new Error(errorData.error || `Failed to fetch API key: ${response.statusText}`);
-                    }
-                    const data = await response.json();
-                    const googleMapsApiKey = data.apiKey;
-
-                    if (!googleMapsApiKey) {
-                        throw new Error('API key not returned by server.');
-                    }
-
-                    // Dynamically create and append the Google Maps script
-                    const googleMapsScript = document.createElement('script');
-                    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initAutocomplete`;
-                    googleMapsScript.async = true; // Add async attribute
-                    googleMapsScript.defer = true; // Add defer attribute for better performance
-                    document.head.appendChild(googleMapsScript);
-
-                } catch (error) {
-                    console.error("Error loading Google Maps API script:", error);
-                    errorMessage.textContent = "Error initializing maps: " + error.message;
-                    // Potentially disable functionality that relies on maps or show a user-friendly message
-                    if (addressInput) addressInput.disabled = true;
-                    if (searchButton) searchButton.disabled = true;
-                }
-            }
-
-            // Call the function to load Google Maps script when DOM is ready
-            loadGoogleMapsScript();
-
-            // --- END OF MODIFICATION ---
+            const estimatedValuesSummary = document.getElementById('estimatedValuesSummary');
+            const introductoryText = document.getElementById('introductoryText'); // Get the introductory text div
 
             function parseCurrencyToNumber(currencyString) {
                 if (!currencyString || typeof currencyString !== 'string') {
@@ -205,6 +167,41 @@
                 }
                 return numericValue;
             }
+
+            // Function to load Google Maps script after fetching the key
+            async function loadGoogleMapsScript() {
+                try {
+                    // Make a request to your Vercel API route
+                    const response = await fetch('/api/get-google-maps-key');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `Failed to fetch API key: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    const googleMapsApiKey = data.apiKey;
+
+                    if (!googleMapsApiKey) {
+                        throw new Error('API key not returned by server.');
+                    }
+
+                    // Dynamically create and append the Google Maps script
+                    const googleMapsScript = document.createElement('script');
+                    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initAutocomplete`;
+                    googleMapsScript.async = true;
+                    googleMapsScript.defer = true;
+                    document.head.appendChild(googleMapsScript);
+
+                } catch (error) {
+                    console.error("Error loading Google Maps API script:", error);
+                    errorMessage.textContent = "Error initializing maps: " + error.message;
+                    // Potentially disable functionality that relies on maps or show a user-friendly message
+                    if (addressInput) addressInput.disabled = true;
+                    if (searchButton) searchButton.disabled = true;
+                }
+            }
+
+            // Call the function to load Google Maps script when DOM is ready
+            loadGoogleMapsScript();
 
             function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
                 const listItem = document.createElement('li');
@@ -334,13 +331,15 @@
                 urlList.innerHTML = '';
                 errorMessage.textContent = '';
                 estimatedValuesTableBody.innerHTML = '';
-                estimatedValuesSummary.innerHTML = ''; // Clear the new summary div
-                estimatedValuesSummary.style.display = 'none'; // Hide it initially
+                estimatedValuesSummary.innerHTML = '';
+                estimatedValuesSummary.style.display = 'none';
 
                 summaryDataContainer.style.display = 'none';
                 summaryPhotoWrapper.innerHTML = '';
                 summaryTextContent.innerHTML = '';
                 resultsSection.style.display = 'none';
+
+                introductoryText.style.display = 'none'; // Hide the introductory text
 
                 // Reset bolding arrays for new search
                 lowValuesForBolding = [];
@@ -564,7 +563,7 @@
                         `;
 
                         estimatedValuesSummary.innerHTML = summaryContentHtml;
-                        estimatedValuesSummary.style.display = 'flex'; // Show the summary div
+                        estimatedValuesSummary.style.display = 'flex';
                     }
 
                     if (pvDataFound) {
