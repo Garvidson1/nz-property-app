@@ -35,7 +35,7 @@
         <div class="loading-spinner" id="loadingSpinner"></div>
         <p class="error-message" id="errorMessage"></p>
 
-        <div id="summaryData" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center text-gray-800" style="display: flex;">
+        <div id="summaryData" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center text-gray-800">
             <div id="summaryPhotoWrapper"></div>
             <div id="summaryTextContent"></div>
         </div>
@@ -152,7 +152,7 @@
             const resultsSection = document.getElementById('results');
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
             const estimatedValuesSummary = document.getElementById('estimatedValuesSummary');
-            const introductoryText = document.getElementById('introductoryText'); // Get the introductory text div
+            const introductoryText = document.getElementById('introductoryText');
 
             function parseCurrencyToNumber(currencyString) {
                 if (!currencyString || typeof currencyString !== 'string') {
@@ -213,8 +213,9 @@
                 if (isError) {
                     const textSpan = document.createElement('span');
                     textSpan.className = 'no-link';
+                    // Apply the new error class here
+                    textSpan.classList.add('error-text-small'); 
                     textSpan.textContent = urlOrError;
-                    textSpan.style.color = 'red';
                     listItem.appendChild(textSpan);
                 } else {
                     const link = document.createElement('a');
@@ -257,9 +258,9 @@
 
                     if (urlError) {
                         const errorSpan = document.createElement('span');
+                        // Apply the new error class here
+                        errorSpan.classList.add('error-text-small'); 
                         errorSpan.textContent = ` (${urlError})`;
-                        errorSpan.style.color = 'red';
-                        errorSpan.style.marginLeft = '5px';
                         websiteCell.appendChild(errorSpan);
                     }
 
@@ -267,15 +268,15 @@
                     websiteCell.textContent = siteName;
                     if (urlError) {
                         const errorSpan = document.createElement('span');
+                        // Apply the new error class here
+                        errorSpan.classList.add('error-text-small'); 
                         errorSpan.textContent = ` (${urlError})`;
-                        errorSpan.style.color = 'red';
-                        errorSpan.style.marginLeft = '5px';
                         websiteCell.appendChild(errorSpan);
                     } else if (url && url.includes("Error")) {
                         const errorSpan = document.createElement('span');
+                        // Apply the new error class here
+                        errorSpan.classList.add('error-text-small'); 
                         errorSpan.textContent = ` (Error retrieving URL)`;
-                        errorSpan.style.color = 'red';
-                        errorSpan.style.marginLeft = '5px';
                         websiteCell.appendChild(errorSpan);
                     }
                 }
@@ -339,7 +340,7 @@
                 summaryTextContent.innerHTML = '';
                 resultsSection.style.display = 'none';
 
-                introductoryText.style.display = 'none'; // Hide the introductory text
+                introductoryText.style.display = 'none';
 
                 // Reset bolding arrays for new search
                 lowValuesForBolding = [];
