@@ -247,6 +247,46 @@ td.py-3.px-4.font-bold.text-lg.text-green-700 {
     display: none; /* Hide 'Find' by default on larger screens */
 }
 
+/* New styles for the logo */
+.logo-and-heading {
+    display: flex;
+    flex-direction: column; /* Stack logo and heading on small screens */
+    align-items: center; /* Center horizontally */
+    margin-bottom: 20px; /* Space below the logo/heading block */
+}
+
+.site-logo {
+    width: 60px; /* Adjust size as needed for mobile */
+    height: auto;
+    margin-bottom: 10px; /* Space between logo and heading on mobile */
+}
+
+.page-heading {
+    text-align: center; /* Ensure heading is centered on mobile */
+}
+
+
+@media (min-width: 641px) { /* Adjust breakpoint as needed for larger screens */
+    .logo-and-heading {
+        flex-direction: row; /* Align logo and heading in a row on larger screens */
+        justify-content: flex-start; /* Align to the left */
+        align-items: center;
+        margin-bottom: 30px; /* Adjust spacing for desktop */
+    }
+
+    .site-logo {
+        width: 80px; /* Larger size for desktop */
+        margin-right: 20px; /* Space between logo and heading */
+        margin-bottom: 0; /* Remove bottom margin when in a row */
+    }
+
+    .page-heading {
+        text-align: left; /* Align heading to the left */
+        margin-bottom: 0; /* Remove bottom margin from heading */
+    }
+}
+
+
 @media (max-width: 640px) { /* Adjust breakpoint as needed, e.g., for typical phone screens */
     /* Only change for the summary data layout */
     #summaryData {
