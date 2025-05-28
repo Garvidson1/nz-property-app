@@ -7,7 +7,7 @@ body {
     color: #333;
     /* Add padding-top to prevent content from being hidden by the sticky header */
     /* This value should match the calculated height of your .site-header */
-    padding-top: 74px; /* Approx. desktop header height (16px top pad + 42px content + 16px bottom pad) */
+    padding-top: 0px; /* Approx. desktop header height (16px top pad + 42px content + 16px bottom pad) */
 }
 
 .container {
@@ -353,7 +353,7 @@ body {
     body {
         /* Adjust padding-top if header height changes significantly on mobile */
         /* Approx mobile header height: (12px top pad + 20px title + 12px margin + 42px search + 12px bottom pad) = 98px */
-        padding-top: 98px;
+        padding-top: 0px;
     }
 
     .site-header {
