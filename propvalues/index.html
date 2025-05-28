@@ -15,30 +15,17 @@
 
 </head>
 <body>
-    <!-- Sticky Glass Header -->
-    <header class="site-header">
-      <div class="container header-container">
-        <h1 class="text-3xl font-bold text-gray-800">Find Your Property Values</h1>
-        <form class="search-form flex items-center w-full max-w-lg">
-          <input 
-            type="text" 
-            id="addressInput" 
-            placeholder="Enter an address..." 
-            class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-l-lg"
-          >
-          <button 
-            id="searchButton" 
-            class="bg-gray-800 text-white px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-r-lg"
-          >
-            <span class="long-text">Find property values</span>
-            <span class="short-text">Find</span>
-          </button>
-        </form>
-      </div>
-    </header>
-
-    <!-- Main Content -->
     <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Find Your Property Values</h1>
+
+        <div class="flex items-center w-full mb-8">
+            <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow border border-gray-300 py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="searchButton" class="bg-gray-800 text-white px-6 py-2 font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="long-text">Find property values</span>
+                <span class="short-text">Find</span>
+            </button>
+        </div>
+
         <div id="introductoryText" class="text-center text-gray-600 mb-8 p-4 bg-gray-50 rounded-lg shadow-sm">
             <p class="mb-2"><strong>Unlock comprehensive property insights across New Zealand.</strong></p>
             <p class="mb-2">Simply enter any New Zealand address to instantly access estimated property values, recent sales data, and market trends from the leading property websites including Homes.co.nz, OneRoof, QV, RealEstate.co.nz, TradeMe Property Insights, and PropertyValue.co.nz.</p>
