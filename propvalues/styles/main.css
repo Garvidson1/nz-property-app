@@ -446,3 +446,8 @@ body {
 /* .ml-2 {
     margin-left: 0rem; /* This overrides Tailwind's ml-2. Consider if this is intended globally. */
 /* } */
+
+.text-green-700 {
+    --tw-text-opacity: 1;
+    color: #10b981;
+}
