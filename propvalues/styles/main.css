@@ -170,34 +170,42 @@ body {
 }
 
 #summaryPhotoWrapper {
-    flex-shrink: 0;
-    width: 200px; 
-    height: 135px; 
-    overflow: hidden; 
-    border-radius: 4px;
-    background-color: #e2e8f0; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 200px;        /* Existing width */
+    height: 135px;       /* Existing height */
+    flex-shrink: 0;      /* Keep photo from shrinking */
+    border-radius: 6px;  /* Slightly more rounded corners than the original 4px */
+    overflow: hidden;      /* Ensures the image respects the border-radius */
+    background-color: #f0f4f8; /* Fallback background, matches page bg or use a light gray like #EDF2F7 */
+    border: 1px solid #e2e8f0; /* A soft border, consistent with other borders (Tailwind gray-200) */
 }
 
 #summaryPhotoWrapper img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: cover; 
+    display: block;      /* Good practice: removes extra space if image is inline */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;   /* Excellent for ensuring the image fills the wrapper nicely */
 }
-
 #summaryTextContent {
     flex-grow: 1;
-    font-size: 0.95rem;
-    line-height: 1.6;
+    /* If #summaryData has padding (e.g., from .container),
+       #summaryTextContent itself might not need additional padding.
+       The `gap` on #summaryData handles spacing from the photo. */
 }
 
 .property-value-detail {
-    margin-bottom: 5px;
+    font-size: 0.9rem;   /* A touch smaller for compactness, or keep at 0.95rem if preferred */
+    line-height: 1.7;    /* Increased for better readability and vertical spacing */
+    color: #4A5568;      /* Value text color: A softer, dark gray (e.g., Tailwind gray-600) */
+    margin-bottom: 10px; /* More space between each detail line */
 }
-.property-value-detail strong {
-    color: #555;
+.property-value-detail:last-child {
+    margin-bottom: 0;    /* Removes bottom margin from the final detail line */
+}
+
+.property-value-detail strong { /* For the labels like "Capital Value:", "Land Value:" */
+    font-weight: 600;    /* Semibold: makes labels distinct and clear (current image looks bold) */
+    color: #1A202C;      /* Label color: Very dark gray for strong contrast (e.g., Tailwind gray-800/900) */
+    margin-right: 0.5em; /* Adds a small space between the label and the value text */
 }
 
 
