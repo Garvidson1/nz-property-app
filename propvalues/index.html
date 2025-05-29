@@ -95,7 +95,6 @@
             }
         }
 
-        // MODIFIED onPlaceChanged function
         function onPlaceChanged() {
             const place = autocomplete.getPlace();
             const addressInput = document.getElementById('addressInput');
@@ -103,20 +102,18 @@
 
             if (!place || !place.address_components || !place.geometry) {
                 console.warn("No valid place details available for input: '" + (place && place.name ? place.name : addressInput.value) + "'");
-                // Optionally, you could set errorMessage.textContent here or clear the input
-                // if the selection is not a valid place.
                 return;
             }
 
-            let subpremise = '';        // For unit numbers, apartment numbers, etc.
-            let streetNumber = '';    // For the street number component
-            let route = '';             // For the street name
-            let currentSublocality = '';// For the suburb (e.g., sublocality_level_1)
-            let currentLocality = '';   // For the city/town (used if suburb is not found)
+            let subpremise = '';
+            let streetNumber = '';
+            let route = '';
+            let currentSublocality = '';
+            let currentLocality = '';
 
             for (let i = 0; i < place.address_components.length; i++) {
                 const component = place.address_components[i];
-                const types = component.types; // component.types is an array of strings
+                const types = component.types; 
 
                 if (types.includes('subpremise')) {
                     subpremise = component.long_name;
@@ -125,7 +122,7 @@
                 } else if (types.includes('route')) {
                     route = component.long_name;
                 } else if (types.includes('sublocality_level_1') || types.includes('sublocality')) {
-                    currentSublocality = component.long_name; // Prioritize sublocality if available
+                    currentSublocality = component.long_name; 
                 } else if (types.includes('locality')) {
                     currentLocality = component.long_name;
                 }
@@ -134,28 +131,22 @@
             let addressParts = [];
             let streetAddressPart = '';
 
-            // Construct the detailed street address part (e.g., "2/88 Lauderdale Road")
-            if (route) { // Street name (route) is the most crucial part for a street address
+            if (route) { 
                 if (subpremise && streetNumber) {
-                    // Format: "Unit/StreetNumber StreetName" e.g., "2/88 Lauderdale Road"
                     streetAddressPart = `${subpremise}/${streetNumber} ${route}`;
                 } else if (streetNumber) {
-                    // Format: "StreetNumber StreetName" e.g., "88 Lauderdale Road"
                     streetAddressPart = `${streetNumber} ${route}`;
                 } else if (subpremise) {
-                    // Format: "Unit StreetName" e.g., "Unit A Main Street" (if no street number)
                     streetAddressPart = `${subpremise} ${route}`;
-                } else {
-                    // Format: "StreetName" e.g., "Lauderdale Road"
+                } else { 
                     streetAddressPart = route;
                 }
                 addressParts.push(streetAddressPart);
             }
 
-            // Add suburb (currentSublocality) or fallback to city (currentLocality)
             if (currentSublocality) {
                 addressParts.push(currentSublocality);
-            } else if (currentLocality && streetAddressPart) { // Only add locality if we have a street address part
+            } else if (currentLocality && streetAddressPart) { 
                 addressParts.push(currentLocality);
             }
 
@@ -163,11 +154,8 @@
 
             if (desiredAddress) {
                 addressInput.value = desiredAddress;
-                if (errorMessage) errorMessage.textContent = ''; // Clear general error message
+                if (errorMessage) errorMessage.textContent = '';
             } else {
-                // Fallback if desiredAddress couldn't be constructed (e.g., not a street address)
-                // Use formatted_address or name, but this might include city/country again.
-                // This part matches your original fallback logic.
                 let fallbackValue = place.formatted_address || place.name || "";
                 addressInput.value = fallbackValue;
                 if (errorMessage) {
@@ -180,9 +168,7 @@
                 console.warn("Failed to parse desired address components. Using fallback:", fallbackValue);
             }
         }
-        // END MODIFIED onPlaceChanged function
         
-        // The rest of your existing JavaScript ...
         document.addEventListener('DOMContentLoaded', () => {
             const addressInput = document.getElementById('addressInput');
             const searchButton = document.getElementById('searchButton');
@@ -228,7 +214,7 @@
                     const googleMapsScript = document.createElement('script');
                     googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initAutocomplete`;
                     googleMapsScript.async = true;
-                    googleMapsScript.defer = true; // Keep defer
+                    googleMapsScript.defer = true; 
                     document.head.appendChild(googleMapsScript);
 
                 } catch (error) {
@@ -463,7 +449,6 @@
                             }
 
                             if (siteName === "TradeMe.co.nz" && homesEstimatedValues) {
-                                // If TradeMe doesn't have its own, use Homes.co.nz as a proxy if available
                                 if (!scrapedData.estimatedValues || Object.values(scrapedData.estimatedValues).every(v => v === 'N/A' || v === 'Error')) {
                                    scrapedData.estimatedValues = { ...homesEstimatedValues };
                                 }
@@ -471,10 +456,19 @@
                             
                             if (siteName === "PropertyValue.co.nz" && scrapedData) {
                                 let summaryHtml = '';
+                                
+                                // MODIFICATION START: Adjust display of Last Sold data
+                                let displayLastSold = scrapedData.lastSold; 
+                                const lastSoldPrefix = 'Last Sold on ';
+                                if (scrapedData.lastSold && typeof scrapedData.lastSold === 'string' && scrapedData.lastSold.startsWith(lastSoldPrefix)) {
+                                    displayLastSold = scrapedData.lastSold.substring(lastSoldPrefix.length);
+                                }
+                                // MODIFICATION END
+
                                 if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
-                                    summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold}</div>`;
+                                    summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${displayLastSold}</div>`;
                                 } else {
-                                     summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${scrapedData.lastSold || 'N/A'}</div>`; // Ensure N/A if undefined
+                                     summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${displayLastSold || 'N/A'}</div>`;
                                 }
 
                                 if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
@@ -526,8 +520,7 @@
                                 displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
                             }
 
-                        } else { // promiseResult.status === 'rejected'
-                            // Ensure promiseResult.reason exists and has expected properties
+                        } else { 
                             const siteName = promiseResult.reason && promiseResult.reason.siteName ? promiseResult.reason.siteName : 'Unknown Site';
                             const errorMsg = promiseResult.reason && promiseResult.reason.error ? promiseResult.reason.error : "Unknown error occurred.";
                             
@@ -569,7 +562,10 @@
 
                         let rateOfReturnHtml = '';
                         if (pvDataForCalculation && pvDataForCalculation.lastSold && pvDataForCalculation.lastSold !== 'N/A' && pvDataForCalculation.lastSold !== 'Not Found on Page') {
-                            const lastSoldMatch = pvDataForCalculation.lastSold.match(/(\d{4})\s+for\s+\$?([0-9,.]+)/);
+                            // Ensure the raw lastSold string (which might have "Last Sold on") is used for parsing year/price
+                            const originalLastSoldForParsing = pvDataForCalculation.lastSold;
+                            const lastSoldMatch = originalLastSoldForParsing.match(/(\d{4})\s+for\s+\$?([0-9,.]+)/);
+
                             if (lastSoldMatch && lastSoldMatch.length === 3) {
                                 const lastSoldYear = parseInt(lastSoldMatch[1]);
                                 const lastSoldPrice = parseCurrencyToNumber(lastSoldMatch[2]);
@@ -606,19 +602,19 @@
                         summaryDataContainer.style.display = 'flex';
                     }
 
-                    if (anyLinkGenerated || mediumValues.length > 0 || pvDataFound) { // Check pvDataFound as well
+                    if (anyLinkGenerated || mediumValues.length > 0 || pvDataFound) { 
                         resultsSection.style.display = 'block';
                     }
 
                     if (!anyLinkGenerated && !pvDataFound && mediumValues.length === 0) {
                         errorMessage.textContent = 'No property links, summary data, or estimated values could be generated for the given address from any site.';
-                         introductoryText.style.display = 'block'; // Show intro text again if no results
+                         introductoryText.style.display = 'block'; 
                     }
 
                 } catch (error) {
                     console.error('Overall error during link generation:', error);
                     errorMessage.textContent = error.message || 'An unexpected overall error occurred during link generation.';
-                     introductoryText.style.display = 'block'; // Show intro text again on error
+                     introductoryText.style.display = 'block'; 
                 } finally {
                     loadingSpinner.style.display = 'none';
                     searchButton.disabled = false;
