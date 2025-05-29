@@ -15,9 +15,9 @@ export default async function handler(req, res) {
     // Retrieve API Key and CX from environment variables
     // These must be set in your Vercel project settings under Environment Variables
     const GOOGLE_CSE_API_KEY = process.env.GOOGLE_CSE_API_KEY; 
-    const GOOGLE_CSE_CX_QV = process.env.GOOGLE_CSE_CX_QV; // Using a specific CX for QV search if needed, or reuse general one.       
+    const GOOGLE_CSE_CX = process.env.GOOGLE_CSE_CX; // Using a specific CX for QV search if needed, or reuse general one.       
 
-    if (!GOOGLE_CSE_API_KEY || !GOOGLE_CSE_CX_QV) {
+    if (!GOOGLE_CSE_API_KEY || !GOOGLE_CSE_CX) {
         console.error("Missing Google CSE API Key or QV CX environment variables.");
         return res.status(500).json({ error: 'Server configuration error: Google API keys not set in Vercel environment variables.' });
     }
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         const searchQuery = `${address} site:qv.co.nz/property-search/property-details/`; 
         const encodedSearchQuery = encodeURIComponent(searchQuery);
 
-        const googleSearchApiUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_CSE_API_KEY}&cx=${GOOGLE_CSE_CX_QV}&q=${encodedSearchQuery}`;
+        const googleSearchApiUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_CSE_API_KEY}&cx=${GOOGLE_CSE_CX}&q=${encodedSearchQuery}`;
 
         const apiResponse = await fetch(googleSearchApiUrl);
 
