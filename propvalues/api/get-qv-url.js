@@ -49,9 +49,9 @@ export default async function handler(req, res) {
         const responseJson = await apiResponse.json();
         
         // Find the first search result that is a direct property link from QV.co.nz property details
-        // We'll look for links starting with 'https://www.qv.co.nz/property-search/property-details/'
+        // We'll look for links starting with 'https://www.qv.co.nz/property-search'
         const qvPropertyLink = responseJson.items?.find(item => 
-            item.link && item.link.startsWith('https://www.qv.co.nz/property-search/property-details/')
+            item.link && item.link.startsWith('https://www.qv.co.nz/property-search')
         );
 
         if (qvPropertyLink) {
