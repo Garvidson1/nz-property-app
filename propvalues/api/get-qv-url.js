@@ -1,5 +1,5 @@
 // api/get-qv-url.js
-// Dedicated backend function for QV.co.nz
+// Dedicated backend function for QV.co.nz using Google Custom Search API
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -12,67 +12,57 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Address is required.' });
     }
 
+    // Retrieve API Key and CX from environment variables
+    // These must be set in your Vercel project settings under Environment Variables
+    const GOOGLE_CSE_API_KEY = process.env.GOOGLE_CSE_API_KEY; 
+    const GOOGLE_CSE_CX_QV = process.env.GOOGLE_CSE_CX_QV; // Using a specific CX for QV search if needed, or reuse general one.       
+
+    if (!GOOGLE_CSE_API_KEY || !GOOGLE_CSE_CX_QV) {
+        console.error("Missing Google CSE API Key or QV CX environment variables.");
+        return res.status(500).json({ error: 'Server configuration error: Google API keys not set in Vercel environment variables.' });
+    }
+
     try {
-        const qvApiUrl = 'https://www.qv.co.nz/api/property-search-address/';
+        // Construct the search query to specifically look on qv.co.nz property detail pages
+        const searchQuery = `${address} site:qv.co.nz/property-search/property-details/`; 
+        const encodedSearchQuery = encodeURIComponent(searchQuery);
 
-        const payload = {
-            search_type: "search",
-            search_params: {
-                search: address
-            },
-            metrics: {
-                search_timestamp: Date.now(),
-                search_type: "search",
-                total_cache_hits: 0,
-                total_results: 0,
-                total_results_displayed: 0,
-                page: "property_search"
+        const googleSearchApiUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_CSE_API_KEY}&cx=${GOOGLE_CSE_CX_QV}&q=${encodedSearchQuery}`;
+
+        const apiResponse = await fetch(googleSearchApiUrl);
+
+        if (!apiResponse.ok) {
+            const errorBody = await apiResponse.json(); // Google API usually returns JSON errors
+            console.error(`Google Custom Search API responded with status: ${apiResponse.status}, error:`, errorBody);
+            
+            // Check for specific Google API errors (e.g., daily limit exceeded, API not enabled)
+            let errorMessage = `Google Custom Search API error: ${apiResponse.status}`;
+            if (errorBody && errorBody.error && errorBody.error.message) {
+                errorMessage += ` - ${errorBody.error.message}`;
             }
-        };
-
-        const qvResponse = await fetch(qvApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36' // Added User-Agent
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!qvResponse.ok) {
-            console.error(`QV.co.nz API responded with status: ${qvResponse.status}`);
-            // Attempt to get more detail from the response body if it's JSON
-            let errorDetail = `QV.co.nz API error: ${qvResponse.status}`;
-            try {
-                const errorBody = await qvResponse.text(); // Use text() to avoid JSON parsing errors for non-JSON responses
-                console.error('QV.co.nz API error response body:', errorBody);
-                if (errorBody.includes("captcha")) { // Example check for common blocks
-                    errorDetail += " (Likely bot/CAPTCHA detection)";
-                } else if (errorBody.includes("forbidden")) {
-                     errorDetail += " (Forbidden - Access Denied)";
-                }
-            } catch (parseError) {
-                console.error('Failed to parse QV.co.nz error response body:', parseError);
+            if (apiResponse.status === 403) {
+                errorMessage += " (Check API Key, enabled APIs, and daily quotas)";
             }
-            return res.status(qvResponse.status).json({ error: errorDetail });
+            return res.status(500).json({ error: errorMessage });
         }
 
-        const qvData = await qvResponse.json();
+        const responseJson = await apiResponse.json();
+        
+        // Find the first search result that is a direct property link from QV.co.nz property details
+        // We'll look for links starting with 'https://www.qv.co.nz/property-search/property-details/'
+        const qvPropertyLink = responseJson.items?.find(item => 
+            item.link && item.link.startsWith('https://www.qv.co.nz/property-search/property-details/')
+        );
 
-        if (qvData.results && Array.isArray(qvData.results) && qvData.results.length > 0) {
-            const propertyResult = qvData.results.find(item => item.rank === 0);
-
-            if (propertyResult && propertyResult.url) {
-                return res.status(200).json({ url: propertyResult.url });
-            } else {
-                return res.status(404).json({ error: 'QV.co.nz: No primary property result (rank 0) or URL not found for address.' });
-            }
+        if (qvPropertyLink) {
+            return res.status(200).json({ url: qvPropertyLink.link });
         } else {
-            return res.status(404).json({ error: 'QV.co.nz: No results found for the given address.' });
+            // If no direct property link found, but search was successful
+            return res.status(404).json({ error: 'No direct QV property link found via Google Search API for this address.' });
         }
 
     } catch (error) {
-        console.error('Backend error (QV.co.nz):', error);
-        return res.status(500).json({ error: 'An internal server error occurred for QV.co.nz link generation.' });
+        console.error('Backend error (Google Custom Search for QV):', error);
+        return res.status(500).json({ error: 'An internal server error occurred for QV link generation.' });
     }
 }
