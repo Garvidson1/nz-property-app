@@ -74,17 +74,11 @@
     </div>
 
     <script>
-        // Your existing JavaScript should largely work as the IDs for addressInput and searchButton are preserved.
-        // The Google Places Autocomplete relies on the input's parent for positioning;
-        // make sure .header-search-wrapper has position: relative (added in CSS below).
-
         let autocomplete;
 
         function initAutocomplete() {
             const addressInput = document.getElementById('addressInput');
             if (addressInput) {
-                // Ensure the parent of addressInput for .pac-container is .header-search-wrapper
-                // (or an element within it that directly wraps the input if further nesting is done)
                 autocomplete = new google.maps.places.Autocomplete(addressInput, {
                     types: ['address'],
                     componentRestrictions: { 'country': ['nz'] }
@@ -457,13 +451,11 @@
                             if (siteName === "PropertyValue.co.nz" && scrapedData) {
                                 let summaryHtml = '';
                                 
-                                // MODIFICATION START: Adjust display of Last Sold data
                                 let displayLastSold = scrapedData.lastSold; 
                                 const lastSoldPrefix = 'Last Sold on ';
                                 if (scrapedData.lastSold && typeof scrapedData.lastSold === 'string' && scrapedData.lastSold.startsWith(lastSoldPrefix)) {
                                     displayLastSold = scrapedData.lastSold.substring(lastSoldPrefix.length);
                                 }
-                                // MODIFICATION END
 
                                 if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
                                     summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${displayLastSold}</div>`;
@@ -561,8 +553,11 @@
                         summaryContentHtml += `</div>`; 
 
                         let rateOfReturnHtml = '';
+                        // MODIFICATION START: Conditional coloring for annual return
+                        let annualReturnColorClass = 'text-green-500'; // Default to green
+                        // MODIFICATION END
+
                         if (pvDataForCalculation && pvDataForCalculation.lastSold && pvDataForCalculation.lastSold !== 'N/A' && pvDataForCalculation.lastSold !== 'Not Found on Page') {
-                            // Ensure the raw lastSold string (which might have "Last Sold on") is used for parsing year/price
                             const originalLastSoldForParsing = pvDataForCalculation.lastSold;
                             const lastSoldMatch = originalLastSoldForParsing.match(/(\d{4})\s+for\s+\$?([0-9,.]+)/);
 
@@ -574,6 +569,11 @@
 
                                 if (numberOfYears > 0 && lastSoldPrice > 0 && !isNaN(averageMedium) && averageMedium > 0) {
                                     const annualReturn = (Math.pow(averageMedium / lastSoldPrice, 1 / numberOfYears) - 1) * 100;
+                                    // MODIFICATION START: Check if annualReturn is negative
+                                    if (annualReturn < 0) {
+                                        annualReturnColorClass = 'text-red-500'; 
+                                    }
+                                    // MODIFICATION END
                                     rateOfReturnHtml = `${annualReturn.toFixed(1)}%<span class="text-sm font-normal text-gray-500 block">p.a. since ${lastSoldYear}</span>`;
                                 } else {
                                     rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Cannot calculate</span>';
@@ -588,7 +588,7 @@
                         summaryContentHtml += `
                             <div class="flex-1 text-right">
                                 <span class="font-bold">Annual Return:</span>
-                                <span class="text-lg font-bold text-green-500 ml-2">
+                                <span class="text-lg font-bold ${annualReturnColorClass} ml-2">
                                     ${rateOfReturnHtml}
                                 </span>
                             </div>
