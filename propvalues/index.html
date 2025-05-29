@@ -95,62 +95,92 @@
             }
         }
 
+        // MODIFIED onPlaceChanged function
         function onPlaceChanged() {
             const place = autocomplete.getPlace();
             const addressInput = document.getElementById('addressInput');
-            const errorMessage = document.getElementById('errorMessage'); // Assuming this error message is general or you might need one specific for header search if issues occur there.
+            const errorMessage = document.getElementById('errorMessage');
 
-            if (!place.geometry) {
-                // Handle no details - you might want a specific error location if this is for header input
-                // errorMessage.textContent = "No details available for input: '" + place.name + "'";
-                console.warn("No details available for input: '" + place.name + "'");
+            if (!place || !place.address_components || !place.geometry) {
+                console.warn("No valid place details available for input: '" + (place && place.name ? place.name : addressInput.value) + "'");
+                // Optionally, you could set errorMessage.textContent here or clear the input
+                // if the selection is not a valid place.
                 return;
             }
 
-            let addressComponents = [];
-            let streetNumber = '';
-            let route = '';
-            let sublocality = ''; // Changed from 'suburb' to 'sublocality' based on your existing code
-            let locality = ''; // Changed from 'city' to 'locality'
+            let subpremise = '';        // For unit numbers, apartment numbers, etc.
+            let streetNumber = '';    // For the street number component
+            let route = '';             // For the street name
+            let currentSublocality = '';// For the suburb (e.g., sublocality_level_1)
+            let currentLocality = '';   // For the city/town (used if suburb is not found)
 
             for (let i = 0; i < place.address_components.length; i++) {
                 const component = place.address_components[i];
-                const type = component.types[0];
+                const types = component.types; // component.types is an array of strings
 
-                if (type === 'street_number') {
+                if (types.includes('subpremise')) {
+                    subpremise = component.long_name;
+                } else if (types.includes('street_number')) {
                     streetNumber = component.long_name;
-                } else if (type === 'route') {
+                } else if (types.includes('route')) {
                     route = component.long_name;
-                } else if (type === 'sublocality_level_1' || type === 'sublocality') {
-                    sublocality = component.long_name;
-                } else if (type === 'locality' && !sublocality) { // ensure locality is used if sublocality is not present
-                    locality = component.long_name;
+                } else if (types.includes('sublocality_level_1') || types.includes('sublocality')) {
+                    currentSublocality = component.long_name; // Prioritize sublocality if available
+                } else if (types.includes('locality')) {
+                    currentLocality = component.long_name;
                 }
             }
             
-            if (streetNumber && route) {
-                addressComponents.push(`${streetNumber} ${route}`);
-            } else if (route) { // If only route is available (e.g. "Main Street")
-                addressComponents.push(route);
+            let addressParts = [];
+            let streetAddressPart = '';
+
+            // Construct the detailed street address part (e.g., "2/88 Lauderdale Road")
+            if (route) { // Street name (route) is the most crucial part for a street address
+                if (subpremise && streetNumber) {
+                    // Format: "Unit/StreetNumber StreetName" e.g., "2/88 Lauderdale Road"
+                    streetAddressPart = `${subpremise}/${streetNumber} ${route}`;
+                } else if (streetNumber) {
+                    // Format: "StreetNumber StreetName" e.g., "88 Lauderdale Road"
+                    streetAddressPart = `${streetNumber} ${route}`;
+                } else if (subpremise) {
+                    // Format: "Unit StreetName" e.g., "Unit A Main Street" (if no street number)
+                    streetAddressPart = `${subpremise} ${route}`;
+                } else {
+                    // Format: "StreetName" e.g., "Lauderdale Road"
+                    streetAddressPart = route;
+                }
+                addressParts.push(streetAddressPart);
             }
 
-            if (sublocality) {
-                addressComponents.push(sublocality);
-            } else if (locality) { // Fallback to locality if sublocality is not available
-                addressComponents.push(locality);
+            // Add suburb (currentSublocality) or fallback to city (currentLocality)
+            if (currentSublocality) {
+                addressParts.push(currentSublocality);
+            } else if (currentLocality && streetAddressPart) { // Only add locality if we have a street address part
+                addressParts.push(currentLocality);
             }
 
-            const desiredAddress = addressComponents.join(', ');
+            const desiredAddress = addressParts.join(', ');
 
             if (desiredAddress) {
                 addressInput.value = desiredAddress;
-                if(errorMessage) errorMessage.textContent = ''; // Clear general error message
+                if (errorMessage) errorMessage.textContent = ''; // Clear general error message
             } else {
-                addressInput.value = place.formatted_address; // Fallback to formatted_address
-                if(errorMessage) errorMessage.textContent = "Could not parse specific address components, using full address.";
-                console.warn("Failed to parse desired address components. Using full formatted_address:", place.formatted_address);
+                // Fallback if desiredAddress couldn't be constructed (e.g., not a street address)
+                // Use formatted_address or name, but this might include city/country again.
+                // This part matches your original fallback logic.
+                let fallbackValue = place.formatted_address || place.name || "";
+                addressInput.value = fallbackValue;
+                if (errorMessage) {
+                    if (fallbackValue) {
+                        errorMessage.textContent = "Could not parse specific address components, using full address.";
+                    } else {
+                        errorMessage.textContent = "Address details could not be retrieved.";
+                    }
+                }
+                console.warn("Failed to parse desired address components. Using fallback:", fallbackValue);
             }
         }
+        // END MODIFIED onPlaceChanged function
         
         // The rest of your existing JavaScript ...
         document.addEventListener('DOMContentLoaded', () => {
