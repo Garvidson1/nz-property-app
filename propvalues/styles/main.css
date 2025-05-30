@@ -246,7 +246,7 @@ body {
 #urlList li .site-name {
     font-weight: 600;
     color: #2d3748;
-    min-width: 150px; 
+    min-width: 170px; 
     flex-shrink: 0;
 }
 
