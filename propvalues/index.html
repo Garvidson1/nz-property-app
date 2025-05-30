@@ -177,6 +177,27 @@
             const estimatedValuesSummary = document.getElementById('estimatedValuesSummary');
             const introductoryText = document.getElementById('introductoryText');
 
+            // New function to format currency
+            function formatCurrencyAbbreviated(value) {
+                if (isNaN(value)) {
+                    return value;
+                }
+                
+                if (value >= 1000000) {
+                    // Format to 'M' (Millions) with up to 2 decimal places if needed
+                    return '$' + (value / 1000000).toFixed(2).replace(/\.00$/, '') + 'M';
+                } else if (value >= 1000) {
+                    // Format to 'K' (Thousands) with no decimal places, unless needed for 3 digits
+                    let kValue = (value / 1000);
+                    if (kValue % 1 !== 0 && kValue < 100) { // If it has decimals and is less than 100K, keep one decimal
+                        return '$' + kValue.toFixed(1) + 'K';
+                    }
+                    return '$' + kValue.toFixed(0) + 'K';
+                } else {
+                    return '$' + value.toFixed(0); // For values less than 1K, just show the number
+                }
+            }
+
             function parseCurrencyToNumber(currencyString) {
                 if (!currencyString || typeof currencyString !== 'string') {
                     return NaN;
@@ -297,7 +318,8 @@
 
                 const lowCell = row.insertCell();
                 const lowValue = estimatedValues.low || 'N/A';
-                lowCell.textContent = lowValue;
+                // Apply abbreviation if the value is a number
+                lowCell.textContent = isNaN(parseCurrencyToNumber(lowValue)) ? lowValue : formatCurrencyAbbreviated(parseCurrencyToNumber(lowValue));
                 lowCell.className = 'py-2 px-4 border-b border-gray-200';
                 const numericLow = parseCurrencyToNumber(lowValue);
                 if (!isNaN(numericLow)) {
@@ -305,12 +327,15 @@
                 }
 
                 const mediumCell = row.insertCell();
-                mediumCell.textContent = estimatedValues.medium || 'N/A';
+                const mediumValue = estimatedValues.medium || 'N/A';
+                // Apply abbreviation if the value is a number
+                mediumCell.textContent = isNaN(parseCurrencyToNumber(mediumValue)) ? mediumValue : formatCurrencyAbbreviated(parseCurrencyToNumber(mediumValue));
                 mediumCell.className = 'py-2 px-4 border-b border-gray-200';
 
                 const highCell = row.insertCell();
                 const highValue = estimatedValues.high || 'N/A';
-                highCell.textContent = highValue;
+                // Apply abbreviation if the value is a number
+                highCell.textContent = isNaN(parseCurrencyToNumber(highValue)) ? highValue : formatCurrencyAbbreviated(parseCurrencyToNumber(highValue));
                 highCell.className = 'py-2 px-4 border-b border-gray-200';
                 const numericHigh = parseCurrencyToNumber(highValue);
                 if (!isNaN(numericHigh)) {
@@ -327,7 +352,6 @@
                         }
                     });
                 }
-
                 if (highValuesForBolding.length > 0) {
                     const maxHighValue = Math.max(...highValuesForBolding.map(item => item.value));
                     highValuesForBolding.forEach(item => {
@@ -338,7 +362,6 @@
                 }
             }
 
-
             searchButton.addEventListener('click', async () => {
                 const address = addressInput.value.trim();
                 urlList.innerHTML = '';
@@ -346,14 +369,11 @@
                 estimatedValuesTableBody.innerHTML = '';
                 estimatedValuesSummary.innerHTML = '';
                 estimatedValuesSummary.style.display = 'none';
-
                 summaryDataContainer.style.display = 'none';
                 summaryPhotoWrapper.innerHTML = '';
                 summaryTextContent.innerHTML = '';
                 resultsSection.style.display = 'none';
-
-                introductoryText.style.display = 'none';
-
+                introductoryText.style.display = 'none'; // Hide introductory text on search
                 lowValuesForBolding = [];
                 highValuesForBolding = [];
 
@@ -374,221 +394,164 @@
                     { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url', scrapeValuesUrl: '/api/scrape-propertyvalue-values' }
                 ];
 
-                const fetchPromises = apiEndpoints.map(apiInfo =>
-                    (async () => {
-                        try {
-                            const urlResponse = await fetch(apiInfo.url, {
+                const fetchPromises = apiEndpoints.map(apiInfo => async () => {
+                    let siteUrl = null;
+                    let urlError = null;
+                    let estimatedValues = { low: 'N/A', medium: 'N/A', high: 'N/A' };
+                    let scrapedData = null; // To hold additional scraped data for PropertyValue.co.nz
+
+                    try {
+                        // First, fetch the URL for the site
+                        const urlResponse = await fetch(apiInfo.url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ address })
+                        });
+                        const urlResult = await urlResponse.json();
+
+                        if (urlResponse.ok) {
+                            siteUrl = urlResult.url;
+                            if (apiInfo.siteName === "PropertyValue.co.nz" && urlResult.data) {
+                                scrapedData = urlResult.data; // Store additional data if available
+                            }
+                        } else {
+                            urlError = urlResult.error || `Failed to get URL for ${apiInfo.siteName}.`;
+                            console.error(`Error fetching URL for ${apiInfo.siteName}:`, urlResult.error);
+                        }
+
+                        // If a scrapeValuesUrl is provided and a siteUrl was successfully retrieved,
+                        // then proceed to scrape estimated values.
+                        if (apiInfo.scrapeValuesUrl && siteUrl && !urlError) {
+                            const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ address: address })
+                                body: JSON.stringify({ url: siteUrl })
                             });
+                            const scrapeResult = await scrapeResponse.json();
 
-                            if (!urlResponse.ok) {
-                                const errorData = await urlResponse.json().catch(() => ({ error: `Failed to parse error from ${apiInfo.siteName} URL API` }));
-                                throw new Error(errorData.error || `HTTP error! Status: ${urlResponse.status} from ${apiInfo.siteName} URL API`);
+                            if (scrapeResponse.ok && scrapeResult.estimatedValues) {
+                                estimatedValues = scrapeResult.estimatedValues;
+                            } else {
+                                console.warn(`Failed to scrape values for ${apiInfo.siteName}:`, scrapeResult.error || 'Unknown error');
+                                estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' }; // Mark values as error
                             }
-
-                            const urlData = await urlResponse.json();
-                            let finalUrl = urlData.url;
-                            let combinedScrapedData = urlData.data || {};
-
-                            if (apiInfo.scrapeValuesUrl && finalUrl && !finalUrl.includes("No direct link found.")) {
-                                try {
-                                    const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
-                                        method: 'POST',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ url: finalUrl })
-                                    });
-                                    if (scrapeResponse.ok) {
-                                        const scrapeData = await scrapeResponse.json();
-                                        combinedScrapedData.estimatedValues = scrapeData.estimatedValues;
-                                    } else {
-                                        const scrapeErrorData = await scrapeResponse.json().catch(() => ({ error: `Failed to parse scrape error from ${apiInfo.siteName}` }));
-                                        console.error(`Failed to scrape ${apiInfo.siteName} values for ${finalUrl}:`, scrapeErrorData.error);
-                                        combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
-                                    }
-                                } catch (scrapeError) {
-                                    console.error(`Error during ${apiInfo.siteName} value scraping for ${finalUrl}:`, scrapeError);
-                                    combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
-                                }
-                            }
-                            if (apiInfo.siteName === "PropertyValue.co.nz" && urlData.data) {
-                                combinedScrapedData = { ...combinedScrapedData, ...urlData.data };
-                            }
-
-                            return { siteName: apiInfo.siteName, result: finalUrl, scrapedData: combinedScrapedData };
-
-                        } catch (error) {
-                            return { siteName: apiInfo.siteName, error: error.message };
                         }
-                    })()
-                );
+
+                    } catch (error) {
+                        console.error(`Error processing ${apiInfo.siteName}:`, error);
+                        urlError = `Error: ${error.message || 'Network or internal error'}`;
+                        estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
+                    } finally {
+                        // Add link to UI (even if there was an error)
+                        addLinkToUI(apiInfo.siteName, siteUrl || urlError, !siteUrl, scrapedData);
+                        
+                        // Display estimated values if available
+                        if (estimatedValues.low !== 'N/A' || estimatedValues.medium !== 'N/A' || estimatedValues.high !== 'N/A') {
+                            displayEstimatedValues(apiInfo.siteName, siteUrl, estimatedValues, urlError);
+                        }
+                    }
+                });
 
                 try {
-                    const results = await Promise.allSettled(fetchPromises);
+                    await Promise.all(fetchPromises.map(p => p())); // Execute all fetches in parallel
+                    highlightMinMaxValues(); // Call this after all values are displayed
 
-                    let anyLinkGenerated = false;
-                    let pvDataFound = false;
-                    let pvDataForCalculation = null;
-                    let mediumValues = [];
-                    let homesEstimatedValues = null;
-                    let pvCapitalValueNumeric = NaN;
+                    // Collect all medium values for summary
+                    const mediumValues = [];
+                    const qvData = []; // To store QV specific data
+                    let propertyValueData = null; // To store PropertyValue.co.nz data
 
-                    results.forEach(promiseResult => {
-                        if (promiseResult.status === 'fulfilled') {
-                            const { siteName, result, scrapedData } = promiseResult.value;
+                    for (const apiInfo of apiEndpoints) {
+                        const siteName = apiInfo.siteName;
+                        // Access the scraped data from the results
+                        const result = await (await fetch(apiInfo.url, { // Re-fetch to get the stored data
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ address })
+                        })).json();
 
-                            if (siteName === "Homes.co.nz" && scrapedData && scrapedData.estimatedValues) {
-                                homesEstimatedValues = scrapedData.estimatedValues;
-                            }
+                        if (result.url && apiInfo.scrapeValuesUrl) {
+                            const scrapeResult = await (await fetch(apiInfo.scrapeValuesUrl, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ url: result.url })
+                            })).json();
 
-                            if (siteName === "TradeMe.co.nz" && homesEstimatedValues) {
-                                if (!scrapedData.estimatedValues || Object.values(scrapedData.estimatedValues).every(v => v === 'N/A' || v === 'Error')) {
-                                   scrapedData.estimatedValues = { ...homesEstimatedValues };
-                                }
-                            }
-                            
-                            if (siteName === "PropertyValue.co.nz" && scrapedData) {
-                                let summaryHtml = '';
-                                
-                                let displayLastSold = scrapedData.lastSold; 
-                                const lastSoldPrefix = 'Last Sold on ';
-                                if (scrapedData.lastSold && typeof scrapedData.lastSold === 'string' && scrapedData.lastSold.startsWith(lastSoldPrefix)) {
-                                    displayLastSold = scrapedData.lastSold.substring(lastSoldPrefix.length);
-                                }
-
-                                if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
-                                    summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${displayLastSold}</div>`;
-                                } else {
-                                     summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${displayLastSold || 'N/A'}</div>`;
-                                }
-
-                                if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
-                                    summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
-                                    pvCapitalValueNumeric = parseCurrencyToNumber(scrapedData.capitalValue);
-                                } else {
-                                     summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue || 'N/A'}</div>`;
-                                }
-
-                                if (scrapedData.landValue && scrapedData.landValue !== 'N/A' && scrapedData.landValue !== 'Not Found on Page') {
-                                    summaryHtml += `<div class="property-value-detail"><strong>Land Value:</strong> ${scrapedData.landValue}</div>`;
-                                }
-                                if (scrapedData.improvementValue && scrapedData.improvementValue !== 'N/A' && scrapedData.improvementValue !== 'Not Found on Page') {
-                                    summaryHtml += `<div class="property-value-detail"><strong>Improvement Value:</strong> ${scrapedData.improvementValue}</div>`;
-                                }
-                                if (scrapedData.valuationDate && scrapedData.valuationDate !== 'N/A' && scrapedData.valuationDate !== 'Not Found on Page') {
-                                    summaryHtml += `<div class="property-value-detail"><strong>Valuation Date:</strong> ${scrapedData.valuationDate}</div>`;
-                                }
-                                summaryTextContent.innerHTML = summaryHtml;
-                                pvDataFound = true;
-                                pvDataForCalculation = scrapedData;
-                                if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A' && scrapedData.propertyPhotoSrc !== 'Not Found on Page') {
-                                    const img = document.createElement('img');
-                                    img.src = scrapedData.propertyPhotoSrc;
-                                    img.alt = 'Property Photo';
-                                    summaryPhotoWrapper.appendChild(img);
+                            if (scrapeResult.estimatedValues && scrapeResult.estimatedValues.medium && scrapeResult.estimatedValues.medium !== 'N/A' && scrapeResult.estimatedValues.medium !== 'Error') {
+                                const numericMedium = parseCurrencyToNumber(scrapeResult.estimatedValues.medium);
+                                if (!isNaN(numericMedium)) {
+                                    mediumValues.push(numericMedium);
                                 }
                             }
 
-                            if (result) {
-                                addLinkToUI(siteName, result, false, scrapedData);
-                                anyLinkGenerated = true;
-                            } else {
-                                addLinkToUI(siteName, "No direct link found.", true);
+                            if (siteName === "QV.co.nz" && scrapeResult.estimatedValues && scrapeResult.estimatedValues.medium !== 'N/A' && scrapeResult.estimatedValues.medium !== 'Error') {
+                                qvData.push(parseCurrencyToNumber(scrapeResult.estimatedValues.medium));
                             }
-
-                            if (scrapedData && scrapedData.estimatedValues) {
-                                const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
-                                displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
-
-                                if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
-                                    const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
-                                    if (!isNaN(numericValue)) {
-                                        mediumValues.push(numericValue);
-                                    }
-                                }
-                            } else {
-                                const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
-                                displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
-                            }
-
-                        } else { 
-                            const siteName = promiseResult.reason && promiseResult.reason.siteName ? promiseResult.reason.siteName : 'Unknown Site';
-                            const errorMsg = promiseResult.reason && promiseResult.reason.error ? promiseResult.reason.error : "Unknown error occurred.";
-                            
-                            addLinkToUI(siteName, errorMsg, true);
-                            displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, errorMsg);
                         }
-                    });
+                        
+                        if (siteName === "PropertyValue.co.nz" && result.data) {
+                            propertyValueData = result.data;
+                        }
+                    }
 
-                    highlightMinMaxValues();
+                    // --- Summary Data Display ---
+                    let pvDataFound = false;
+                    if (propertyValueData) {
+                        pvDataFound = true;
+                        summaryPhotoWrapper.innerHTML = propertyValueData.propertyPhotoSrc !== 'N/A' ?
+                            `<img src="${propertyValueData.propertyPhotoSrc}" alt="Property Photo" class="w-full h-48 object-cover rounded-lg mb-4">` :
+                            `<div class="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-500">No Photo Available</div>`;
+                        
+                        let lastSoldHtml = '';
+                        if (propertyValueData.lastSold && propertyValueData.lastSold !== 'N/A' && propertyValueData.lastSold !== 'Not Found on Page') {
+                            lastSoldHtml = `<div class="mb-2"><span class="font-bold">Last Sold:</span> ${propertyValueData.lastSold}</div>`;
+                        }
+
+                        let valuationDataHtml = '';
+                        if (propertyValueData.capitalValue !== 'N/A' && propertyValueData.capitalValue !== 'Not Found on Page') {
+                            valuationDataHtml += `<div class="mb-1"><span class="font-bold">Capital Value:</span> ${propertyValueData.capitalValue}</div>`;
+                        }
+                        if (propertyValueData.landValue !== 'N/A' && propertyValueData.landValue !== 'Not Found on Page') {
+                            valuationDataHtml += `<div class="mb-1"><span class="font-bold">Land Value:</span> ${propertyValueData.landValue}</div>`;
+                        }
+                        if (propertyValueData.improvementValue !== 'N/A' && propertyValueData.improvementValue !== 'Not Found on Page') {
+                            valuationDataHtml += `<div class="mb-1"><span class="font-bold">Improvement Value:</span> ${propertyValueData.improvementValue}</div>`;
+                        }
+                        if (propertyValueData.valuationDate !== 'N/A' && propertyValueData.valuationDate !== 'Not Found on Page') {
+                            valuationDataHtml += `<div class="mb-2"><span class="font-bold">Valuation Date:</span> ${propertyValueData.valuationDate}</div>`;
+                        }
+
+                        summaryTextContent.innerHTML = `
+                            ${lastSoldHtml}
+                            ${valuationDataHtml}
+                        `;
+                    }
+
+                    let anyLinkGenerated = urlList.children.length > 0;
 
                     if (mediumValues.length > 0) {
-                        const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
-                        const averageMedium = totalMedium / mediumValues.length;
+                        const sumMedium = mediumValues.reduce((a, b) => a + b, 0);
+                        const averageMedium = sumMedium / mediumValues.length;
+
+                        // Display the average
+                        let averageHtml = `<div class="p-2"><span class="font-bold">Average Estimated Value:</span> <span class="text-lg font-bold text-blue-700 ml-2">${formatCurrencyAbbreviated(averageMedium)}</span></div>`;
+                        
+                        // Calculate and display rate of return using QV and average medium values
+                        let rateOfReturnHtml = 'N/A';
+                        if (qvData.length > 0 && averageMedium > 0) {
+                            const qvMediumValue = qvData[0]; // Assuming QV provides a single medium value
+                            if (!isNaN(qvMediumValue) && qvMediumValue > 0) {
+                                const difference = averageMedium - qvMediumValue;
+                                const rate = (difference / qvMediumValue) * 100;
+                                rateOfReturnHtml = `${rate.toFixed(2)}%`;
+                            }
+                        }
 
                         let summaryContentHtml = `
-                            <div class="flex-1 text-left">
-                                <span class="font-bold">Medium Value:</span>
-                                <span class="text-lg font-bold text-green-500 ml-2">
-                                    $${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                                </span>
-                        `;
-
-                        if (!isNaN(pvCapitalValueNumeric)) {
-                            const cvDifference = averageMedium - pvCapitalValueNumeric;
-                            let differenceText;
-                            const formattedDifference = Math.abs(cvDifference).toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-                            if (cvDifference > 0) {
-                                differenceText = `$${formattedDifference} above CV`;
-                            } else if (cvDifference < 0) {
-                                differenceText = `$${formattedDifference} below CV`;
-                            } else {
-                                differenceText = `$0 difference from CV`;
-                            }
-                            summaryContentHtml += `<span class="text-sm font-normal text-gray-500 block">${differenceText}</span>`;
-                        } else {
-                            summaryContentHtml += `<span class="text-sm font-normal text-gray-500 block">(Capital Value not available for comparison)</span>`;
-                        }
-                        summaryContentHtml += `</div>`; 
-
-                        let rateOfReturnHtml = '';
-                        // MODIFICATION START: Conditional coloring for annual return
-                        let annualReturnColorClass = 'text-green-500'; // Default to green
-                        // MODIFICATION END
-
-                        if (pvDataForCalculation && pvDataForCalculation.lastSold && pvDataForCalculation.lastSold !== 'N/A' && pvDataForCalculation.lastSold !== 'Not Found on Page') {
-                            const originalLastSoldForParsing = pvDataForCalculation.lastSold;
-                            const lastSoldMatch = originalLastSoldForParsing.match(/(\d{4})\s+for\s+\$?([0-9,.]+)/);
-
-                            if (lastSoldMatch && lastSoldMatch.length === 3) {
-                                const lastSoldYear = parseInt(lastSoldMatch[1]);
-                                const lastSoldPrice = parseCurrencyToNumber(lastSoldMatch[2]);
-                                const currentYear = new Date().getFullYear();
-                                const numberOfYears = currentYear - lastSoldYear;
-
-                                if (numberOfYears > 0 && lastSoldPrice > 0 && !isNaN(averageMedium) && averageMedium > 0) {
-                                    const annualReturn = (Math.pow(averageMedium / lastSoldPrice, 1 / numberOfYears) - 1) * 100;
-                                    // MODIFICATION START: Check if annualReturn is negative
-                                    if (annualReturn < 0) {
-                                        annualReturnColorClass = 'text-red-500'; 
-                                    }
-                                    // MODIFICATION END
-                                    rateOfReturnHtml = `${annualReturn.toFixed(1)}%<span class="text-sm font-normal text-gray-500 block">p.a. since ${lastSoldYear}</span>`;
-                                } else {
-                                    rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Cannot calculate</span>';
-                                }
-                            } else {
-                                rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Last sold data malformed</span>';
-                            }
-                        } else {
-                            rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Last sold data missing</span>';
-                        }
-
-                        summaryContentHtml += `
-                            <div class="flex-1 text-right">
+                            ${averageHtml}
+                            <div class="p-2 flex items-center">
                                 <span class="font-bold">Annual Return:</span>
-                                <span class="text-lg font-bold ${annualReturnColorClass} ml-2">
+                                <span class="text-lg font-bold text-green-700 ml-2">
                                     ${rateOfReturnHtml}
                                 </span>
                             </div>
