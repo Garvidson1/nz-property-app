@@ -305,7 +305,12 @@
                 }
 
                 const mediumCell = row.insertCell();
-                mediumCell.textContent = estimatedValues.medium || 'N/A';
+                // Special handling for QV medium value which is already formatted
+                if (siteName === "QV.co.nz") {
+                    mediumCell.textContent = estimatedValues.medium || 'N/A';
+                } else {
+                    mediumCell.textContent = estimatedValues.medium || 'N/A';
+                }
                 mediumCell.className = 'py-2 px-4 border-b border-gray-200';
 
                 const highCell = row.insertCell();
@@ -370,7 +375,7 @@
                     { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' },
                     { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' },
                     { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
-                    { siteName: "QV.co.nz", url: '/api/get-qv-url', scrapeValuesUrl: '/api/scrape-qv-values' }, // MODIFIED LINE
+                    { siteName: "QV.co.nz", url: '/api/get-qv-url', scrapeValuesUrl: '/api/scrape-qv-values' },
                     { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url', scrapeValuesUrl: '/api/scrape-propertyvalue-values' }
                 ];
 
@@ -501,12 +506,27 @@
                                 const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                                 displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
 
-                                if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
+                                // Only parse medium value if it's NOT from QV.co.nz, as QV is already formatted
+                                if (siteName !== "QV.co.nz" && scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
                                     const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
                                     if (!isNaN(numericValue)) {
                                         mediumValues.push(numericValue);
                                     }
                                 }
+                                // For QV.co.nz, if the value is a parsable number, include it in mediumValues
+                                else if (siteName === "QV.co.nz" && scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
+                                    const rawNumericValue = parseFloat(scrapedData.estimatedValues.medium.replace(/[^0-9.-]+/g,"")); // Extract raw number for calculation
+                                    if (!isNaN(rawNumericValue)) {
+                                        if (scrapedData.estimatedValues.medium.endsWith('M')) {
+                                            mediumValues.push(rawNumericValue * 1000000);
+                                        } else if (scrapedData.estimatedValues.medium.endsWith('K')) {
+                                            mediumValues.push(rawNumericValue * 1000);
+                                        } else {
+                                            mediumValues.push(rawNumericValue);
+                                        }
+                                    }
+                                }
+
                             } else {
                                 const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                                 displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
