@@ -45,6 +45,8 @@
         <div id="results">
             <div class="container">
             <h2 class="mt-8">Estimated Values:</h2>
+            <div id="overallSummaryText" class="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 hidden">
+                </div>
             <div class="overflow-x-auto">
                 <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
                     <thead>
@@ -176,6 +178,7 @@
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
             const estimatedValuesSummary = document.getElementById('estimatedValuesSummary');
             const introductoryText = document.getElementById('introductoryText');
+            const overallSummaryTextElement = document.getElementById('overallSummaryText'); // NEW LINE
 
             function parseCurrencyToNumber(currencyString) {
                 if (!currencyString || typeof currencyString !== 'string') {
@@ -240,12 +243,13 @@
                     link.textContent = urlOrError;
                     link.target = '_blank';
                     link.rel = 'noopener noreferrer';
+                    link.className = 'text-blue-700 hover:underline font-medium'; // Added classes here
                     listItem.appendChild(link);
 
                     if (scrapedData && Object.keys(scrapedData).length > 0 && !scrapedData.estimatedValues) {
                         const dataDiv = document.createElement('div');
                         dataDiv.className = 'scraped-data';
-                        let dataText = '';
+                        let dataText = ''; // No data text to display here
                         dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>');
                         if (dataText.trim()) {
                             listItem.appendChild(dataDiv);
@@ -254,6 +258,7 @@
                 }
                 urlList.appendChild(listItem);
             }
+
 
             let lowValuesForBolding = [];
             let highValuesForBolding = [];
@@ -376,6 +381,8 @@
                 estimatedValuesTableBody.innerHTML = '';
                 estimatedValuesSummary.innerHTML = '';
                 estimatedValuesSummary.style.display = 'none';
+                overallSummaryTextElement.innerHTML = ''; // NEW LINE
+                overallSummaryTextElement.style.display = 'none'; // NEW LINE
 
                 summaryDataContainer.style.display = 'none';
                 summaryPhotoWrapper.innerHTML = '';
@@ -461,9 +468,16 @@
                     let anyLinkGenerated = false;
                     let pvDataFound = false;
                     let pvDataForCalculation = null;
-                    let mediumValues = []; // For average calculation
+                    let mediumValues = [];
                     let homesEstimatedValues = null;
                     let pvCapitalValueNumeric = NaN;
+
+                    // NEW SUMMARY TEXT RELATED VARIABLES
+                    let sitesWithEstimatesCount = 0;
+                    const totalSitesForSummary = apiEndpoints.length; // Will be 6
+                    let numericMediumValuesForVariance = [];
+                    let broadestRangeSiteName = 'N/A';
+                    let broadestRangeValue = 0;
 
                     results.forEach(promiseResult => {
                         if (promiseResult.status === 'fulfilled') {
@@ -532,14 +546,35 @@
                                 const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                                 displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
 
-                                // Collect medium values for average calculation
+                                // Logic for summary text
+                                const hasValidEstimate = Object.values(scrapedData.estimatedValues).some(
+                                    val => val !== 'N/A' && val !== 'Error' && val !== undefined
+                                );
+                                if (hasValidEstimate) {
+                                    sitesWithEstimatesCount++;
+                                }
+
+                                const numericMedium = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
+                                if (!isNaN(numericMedium)) {
+                                    numericMediumValuesForVariance.push(numericMedium);
+                                }
+
+                                const numericLow = parseCurrencyToNumber(scrapedData.estimatedValues.low);
+                                const numericHigh = parseCurrencyToNumber(scrapedData.estimatedValues.high);
+                                if (!isNaN(numericLow) && !isNaN(numericHigh)) {
+                                    const currentRange = numericHigh - numericLow;
+                                    if (currentRange > broadestRangeValue) {
+                                        broadestRangeValue = currentRange;
+                                        broadestRangeSiteName = siteName;
+                                    }
+                                }
+
                                 if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
                                     const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
                                     if (!isNaN(numericValue)) {
                                         mediumValues.push(numericValue);
                                     }
                                 }
-
                             } else {
                                 const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
                                 displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
@@ -554,7 +589,34 @@
                         }
                     });
 
-                    renderEstimatedValuesTable(); // Render table after all data is collected and sorted
+                    renderEstimatedValuesTable(); // Call this after allEstimatedValues is populated
+
+                    // GENERATE AND DISPLAY SUMMARY TEXT
+                    let summaryParts = [];
+                    summaryParts.push(`We found property estimates across <strong>${sitesWithEstimatesCount} of ${totalSitesForSummary} sites</strong>.`);
+
+                    if (numericMediumValuesForVariance.length > 1) {
+                        const minMedium = Math.min(...numericMediumValuesForVariance);
+                        const maxMedium = Math.max(...numericMediumValuesForVariance);
+                        const variance = maxMedium - minMedium;
+                        summaryParts.push(`The medium estimate price variance was <strong>$${variance.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</strong>.`);
+                    } else if (numericMediumValuesForVariance.length === 1) {
+                        summaryParts.push(`Only one medium estimate was found, so variance cannot be calculated.`);
+                    } else {
+                        summaryParts.push(`No valid medium estimates were found to calculate variance.`);
+                    }
+
+                    if (broadestRangeValue > 0) {
+                        summaryParts.push(`<strong>${broadestRangeSiteName}</strong> has the broadest range between low and high estimate of <strong>$${broadestRangeValue.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</strong>.`);
+                    } else {
+                        summaryParts.push(`No valid low/high ranges were found to determine the broadest range.`);
+                    }
+
+                    if (overallSummaryTextElement) {
+                        overallSummaryTextElement.innerHTML = summaryParts.join('<br>');
+                        overallSummaryTextElement.style.display = 'block';
+                    }
+                    // END GENERATE AND DISPLAY SUMMARY TEXT
 
                     if (mediumValues.length > 0) {
                         const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
