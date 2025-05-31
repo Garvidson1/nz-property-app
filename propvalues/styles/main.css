@@ -92,7 +92,7 @@ body {
     background-color: #3B82F6; /* Tailwind blue-500 */
     color: white;
     border: 1px solid #3B82F6;
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 20px 20px 0;
     padding-left: 1rem;  /* Tailwind px-4 */
     padding-right: 1rem; /* Tailwind px-4 */
     height: 42px; /* Match input height */
