@@ -12,7 +12,7 @@ body {
 
 /* Override Tailwind's .rounded-lg */
 .rounded-lg {
-    border-radius: 20px;
+    border-radius: 20px !important; /* Added !important here */
 }
 
 .container {
