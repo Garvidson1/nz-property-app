@@ -48,7 +48,7 @@ export default async function handler(req, res) {
 
         // === CHANGE HERE: Correctly parse the 'cards' array and find the URL ===
         const propertyCard = detailsData.cards && detailsData.cards.find(
-            card => card.property && card.property.id === propertyId // Find the specific card using the propertyId within the nested property object
+            card => card.property_id === propertyId // Find the specific card where 'property_id' matches
         );
 
         if (propertyCard && propertyCard.url) {
