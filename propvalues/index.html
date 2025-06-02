@@ -12,8 +12,7 @@
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-0910314329433856"
           crossorigin="anonymous"></script>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-V5892WKB8E"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-V5892WKB8E"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -281,6 +280,16 @@
             function renderEstimatedValuesTable() {
                 estimatedValuesTableBody.innerHTML = ''; // Clear existing rows
 
+                // Define a mapping of site names to favicon URLs
+                const faviconMap = {
+                    "RealEstate.co.nz": "https://www.realestate.co.nz/favicon.ico",
+                    "OneRoof.co.nz": "https://www.oneroof.co.nz/favicon.ico",
+                    "Homes.co.nz": "https://homes.co.nz/favicon.ico",
+                    "TradeMe.co.nz": "https://www.trademe.co.nz/favicon.ico",
+                    "QV.co.nz": "https://www.qv.co.nz/favicon.ico",
+                    "PropertyValue.co.nz": "https://www.propertyvalue.co.nz/favicon.ico"
+                };
+
                 // Sort by medium value, highest to lowest
                 allEstimatedValues.sort((a, b) => {
                     const mediumA = parseCurrencyToNumber(a.estimatedValues.medium);
@@ -297,13 +306,24 @@
                     row.className = 'text-sm text-gray-800';
 
                     const websiteCell = row.insertCell();
+                    websiteCell.className += ' py-2 px-4 border-b border-gray-200 flex items-center'; // Add flex and align-items-center
+
+                    const faviconUrl = faviconMap[siteName];
+                    if (faviconUrl) {
+                        const faviconImg = document.createElement('img');
+                        faviconImg.src = faviconUrl;
+                        faviconImg.alt = `${siteName} favicon`;
+                        faviconImg.classList.add('site-favicon'); // Add a class for styling
+                        websiteCell.appendChild(faviconImg);
+                    }
+
                     if (url && url !== 'N/A' && url !== 'No direct link found.' && !url.includes("Error")) {
                         const link = document.createElement('a');
                         link.href = url;
                         link.textContent = siteName;
                         link.target = '_blank';
                         link.rel = 'noopener noreferrer';
-                        link.className = 'text-blue-700 hover:underline font-medium';
+                        link.className = 'text-blue-700 hover:underline font-medium ml-2'; // Added ml-2 for spacing
                         websiteCell.appendChild(link);
 
                         if (urlError) {
@@ -314,7 +334,10 @@
                         }
 
                     } else {
-                        websiteCell.textContent = siteName;
+                        const textSpan = document.createElement('span');
+                        textSpan.textContent = siteName;
+                        textSpan.classList.add('ml-2'); // Add ml-2 for spacing
+                        websiteCell.appendChild(textSpan);
                         if (urlError) {
                             const errorSpan = document.createElement('span');
                             errorSpan.classList.add('error-text-small'); 
@@ -327,7 +350,8 @@
                             websiteCell.appendChild(errorSpan);
                         }
                     }
-                    websiteCell.className += ' py-2 px-4 border-b border-gray-200';
+                    websiteCell.className += ' py-2 px-4 border-b border-gray-200'; // Keep this for existing padding/border
+
 
                     const lowCell = row.insertCell();
                     const lowValue = estimatedValues.low || 'N/A';
