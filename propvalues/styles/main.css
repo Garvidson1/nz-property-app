@@ -175,7 +175,7 @@ body {
 }
 
 #summaryPhotoWrapper {
-  /*  width: 200px;       Existing width */
+  /* width: 200px;       Existing width */
     height: 165px;       /* Existing height */
     flex-shrink: 0;      /* Keep photo from shrinking */
     border-radius: 18px;  /* Slightly more rounded corners than the original 4px */
@@ -355,6 +355,15 @@ body {
     color: #0A0A0A; 
 }
 
+/* New CSS for Favicon */
+.site-favicon {
+    width: 16px; /* Adjust as needed */
+    height: 16px; /* Adjust as needed */
+    margin-right: 8px; /* Space between favicon and text */
+    vertical-align: middle; /* Align with text */
+    flex-shrink: 0; /* Prevent favicon from shrinking on small screens */
+}
+
 
 /* Responsive button text (Original .short-text and .long-text rules for the button) */
 /* Default: show long text, hide short text */
@@ -438,4 +447,5 @@ body {
 .text-green-700 {
     --tw-text-opacity: 1;
     color: #10b981;
+}
 }
