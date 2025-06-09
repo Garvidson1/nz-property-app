@@ -16,9 +16,6 @@ export default async function handler(req, res) {
         const encodedAddress = encodeURIComponent(address);
         const searchApiUrl = `https://platform.realestate.co.nz/search/v1/properties/smart?q=${encodedAddress}`;
 
-        // --- ADD THIS LOG ---
-        console.log(`RealEstate.co.nz: Fetching from URL: ${searchApiUrl}`);
-
         const apiResponse = await fetch(searchApiUrl);
 
         if (!apiResponse.ok) {
@@ -29,30 +26,26 @@ export default async function handler(req, res) {
 
         const responseJson = await apiResponse.json();
 
-        // --- ADD THIS LOG ---
-        // Log the full data array returned by the API
-        console.log('RealEstate.co.nz API response data:', JSON.stringify(responseJson.data, null, 2));
+        // Normalize the requested address for robust comparison (lowercase, trim whitespace)
+        // This will be used to check if the API's street-address CONTAINS this partial address.
+        const normalizedRequestedAddress = address.toLowerCase().trim();
 
         const propertyObject = responseJson.data && responseJson.data.find(f =>
-            f.filter === 'property' && f["address-slug"] && f["short-id"]
+            f.filter === 'property' &&
+            f["address-slug"] &&
+            f["short-id"] &&
+            f["street-address"] && // Ensure 'street-address' property exists
+            // Check if the API's street-address includes the normalized requested address
+            f["street-address"].toLowerCase().trim().includes(normalizedRequestedAddress)
         );
-
-        // --- ADD THIS LOG ---
-        // Log the property object that was actually found by the .find() method
-        console.log('RealEstate.co.nz found property object:', propertyObject);
-
 
         if (propertyObject) {
             const addressSlug = propertyObject["address-slug"];
             const shortId = propertyObject["short-id"];
-            const finalUrl = `https://www.realestate.co.nz/property/<span class="math-inline">\{addressSlug\}/</span>{shortId}`;
-
-            // --- ADD THIS LOG ---
-            console.log(`RealEstate.co.nz: Returning URL: ${finalUrl}`);
+            const finalUrl = `https://www.realestate.co.nz/property/${addressSlug}/${shortId}`;
 
             return res.status(200).json({ url: finalUrl });
         } else {
-            console.log('RealEstate.co.nz: No direct property link found.'); // Also good to log if not found
             return res.status(404).json({ error: 'No direct property link found for RealEstate.co.nz.' });
         }
 
