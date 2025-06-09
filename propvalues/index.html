@@ -643,7 +643,7 @@
                         const minMedium = Math.min(...numericMediumValuesForVariance);
                         const maxMedium = Math.max(...numericMediumValuesForVariance);
                         const variance = maxMedium - minMedium;
-                        summaryParts.push(`The difference between the highest and lowest medium estimates was <strong>$${variance.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</strong>.`);
+                        summaryParts.push(`The difference between the highest and lowest median estimates was <strong>$${variance.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</strong>.`);
                     } else if (numericMediumValuesForVariance.length === 1) {
                         summaryParts.push(`Only one medium estimate was found, so variance cannot be calculated.`);
                     } else {
