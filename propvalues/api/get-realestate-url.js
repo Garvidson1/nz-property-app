@@ -20,23 +20,22 @@ export default async function handler(req, res) {
 
         if (!apiResponse.ok) {
             console.error(`RealEstate.co.nz API responded with status: ${apiResponse.status}`);
-            // Return a more generic error for the frontend
             return res.status(apiResponse.status).json({ error: `RealEstate.co.nz API error: ${apiResponse.status}` });
         }
 
         const responseJson = await apiResponse.json();
 
-        // Normalize the requested address for robust comparison (lowercase, trim whitespace)
-        // This will be used to check if the API's street-address CONTAINS this partial address.
-        const normalizedRequestedAddress = address.toLowerCase().trim();
+        // Normalize the requested address by taking only the street number and name part
+        // Example: "1/68 Beulah Avenue, Rothesay Bay" -> "1/68 Beulah Avenue"
+        const parsedRequestedStreetAddress = address.split(',')[0].toLowerCase().trim();
 
         const propertyObject = responseJson.data && responseJson.data.find(f =>
             f.filter === 'property' &&
             f["address-slug"] &&
             f["short-id"] &&
             f["street-address"] && // Ensure 'street-address' property exists
-            // Check if the API's street-address includes the normalized requested address
-            f["street-address"].toLowerCase().trim().includes(normalizedRequestedAddress)
+            // Compare the parsed street address from the API response with the parsed requested address
+            f["street-address"].toLowerCase().trim() === parsedRequestedStreetAddress
         );
 
         if (propertyObject) {
