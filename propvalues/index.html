@@ -27,7 +27,7 @@
             <h1 class="header-title">Find Your Property Values</h1>
             <div class="header-search-wrapper">
                 <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <button id="searchButton" class="font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="searchButton" class="font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
                     <span class="long-text">Find property values</span>
                     <span class="short-text">Find</span>
                 </button>
@@ -88,12 +88,19 @@
 
         function initAutocomplete() {
             const addressInput = document.getElementById('addressInput');
+            const searchButton = document.getElementById('searchButton'); // Get the search button
             if (addressInput) {
                 autocomplete = new google.maps.places.Autocomplete(addressInput, {
                     types: ['address'],
                     componentRestrictions: { 'country': ['nz'] }
                 });
                 autocomplete.addListener('place_changed', onPlaceChanged);
+
+                // Add an input event listener to disable the button if text is typed without selecting a suggestion
+                addressInput.addEventListener('input', () => {
+                    searchButton.disabled = true; // Disable button on any input change
+                });
+
             } else {
                 console.error("Address input element not found. Autocomplete could not be initialized.");
             }
@@ -103,9 +110,11 @@
             const place = autocomplete.getPlace();
             const addressInput = document.getElementById('addressInput');
             const errorMessage = document.getElementById('errorMessage');
+            const searchButton = document.getElementById('searchButton'); // Get the search button
 
             if (!place || !place.address_components || !place.geometry) {
                 console.warn("No valid place details available for input: '" + (place && place.name ? place.name : addressInput.value) + "'");
+                searchButton.disabled = true; // Keep button disabled if no valid place
                 return;
             }
 
@@ -159,6 +168,7 @@
             if (desiredAddress) {
                 addressInput.value = desiredAddress;
                 if (errorMessage) errorMessage.textContent = '';
+                searchButton.disabled = false; // Enable the search button if a valid address is parsed
             } else {
                 let fallbackValue = place.formatted_address || place.name || "";
                 addressInput.value = fallbackValue;
@@ -169,6 +179,7 @@
                         errorMessage.textContent = "Address details could not be retrieved.";
                     }
                 }
+                searchButton.disabled = true; // Keep button disabled if no desired address
                 console.warn("Failed to parse desired address components. Using fallback:", fallbackValue);
             }
         }
@@ -745,7 +756,8 @@
                      introductoryText.style.display = 'block'; 
                 } finally {
                     loadingSpinner.style.display = 'none';
-                    searchButton.disabled = false;
+                    // We explicitly control button state based on autocomplete selection now
+                    // searchButton.disabled = false; 
                 }
             });
         });
