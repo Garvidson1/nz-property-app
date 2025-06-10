@@ -20,76 +20,41 @@
 
   gtag('config', 'G-V5892WKB8E');
 </script>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-0910314329433856"
-     crossorigin="anonymous"></script>
 </head>
 <body>
-    <header class="site-header sticky top-0 z-50 bg-white shadow-md py-4">
-        <div class="container mx-auto flex flex-col md:flex-row items-center justify-between px-4">
-            <h1 class="site-title text-2xl font-bold text-gray-800 mb-3 md:mb-0 md:mr-4">
-                <a href="/" class="text-gray-800 hover:no-underline">NZ Property Value Finder</a>
-            </h1>
-            <div class="header-search-wrapper flex items-center w-full md:w-auto">
-                <input type="text" id="addressInput" placeholder="Enter an address, e.g., 10 Downing Street, London" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2">
-                <button id="searchButton" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition ease-in-out duration-150">
-                    <span class="long-text">Search Property</span>
-                    <span class="short-text">Search</span>
+    <header class="site-header">
+        <div class="header-content-wrapper">
+            <h1 class="header-title">Find Your Property Values</h1>
+            <div class="header-search-wrapper">
+                <input type="text" id="addressInput" placeholder="Enter an address..." class="flex-grow py-2 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button id="searchButton" class="font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+                    <span class="long-text">Find property values</span>
+                    <span class="short-text">Find</span>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto mt-8 px-4">
-        <section id="introductoryText" class="text-center text-gray-600 mb-8 max-w-2xl mx-auto">
-            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Welcome to NZ Property Value Finder</h2>
-            <p class="mb-4">
-                Instantly access property information from New Zealand's top real estate websites.
-                Simply enter an address to find estimated values, sales history, and more, all in one place.
-            </p>
-            <p>
-                We aggregate data from <span class="font-medium text-gray-700">Homes.co.nz, OneRoof, QV, RealEstate.co.nz, TradeMe, and PropertyValue.co.nz</span> to give you a comprehensive overview.
-            </p>
-        </section>
-
-        <div id="loadingSpinner" class="text-center mt-10" style="display: none;">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto"></div>
-            <p class="text-gray-600 mt-3">Loading property data...</p>
+    <div class="xx">
+        <div id="introductoryText" class="container">
+            <p class="mb-2"><strong>Unlock comprehensive property insights across New Zealand.</strong></p>
+            <p class="mb-2">Simply enter any New Zealand address to instantly access recent sale data and the estimated property values from leading property websites including Homes.co.nz, OneRoof, QV, RealEstate.co.nz, TradeMe Property Insights, and PropertyValue.co.nz.</p>
+            <p>Whether you're buying, selling, or just curious, get all the information you need in one convenient place to make informed decisions about property in NZ.</p>
         </div>
 
-        <div id="errorMessage" class="text-center text-red-600 mt-4" style="display: none;"></div>
+        <div class="loading-spinner" id="loadingSpinner"></div>
+        <p class="error-message" id="errorMessage"></p>
 
-        <section id="resultsSection" style="display: none;" class="mt-8">
-            <div id="summaryDataContainer" class="bg-white p-6 rounded-lg shadow-md mb-8 flex flex-col md:flex-row items-center" style="display: none;">
-                <div id="summaryPhotoWrapper" class="w-full md:w-1/3 flex-shrink-0 mb-4 md:mb-0 md:mr-6">
-                    <img id="summaryPropertyPhoto" src="" alt="Property Photo" class="w-full h-auto rounded-lg shadow-sm" style="display: none;">
+        <div id="summaryData" class="container">
+            <div id="summaryPhotoWrapper"></div>
+            <div id="summaryTextContent"></div>
+        </div>
+
+        <div id="results">
+            <div class="container">
+            <h2 class="mt-8">Estimated Values:</h2>
+            <div id="overallSummaryText" class="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-lg text-gray-700 hidden">
                 </div>
-                
-                <div id="summaryDetails" class="flex-grow">
-                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Property Summary (<span id="summaryAddress"></span>)</h3>
-                    <div id="summaryLastSold" class="text-gray-700 text-lg mb-2" style="display: none;">
-                        <p class="font-medium">Last Sold: <span id="lastSoldValue" class="font-bold"></span></p>
-                    </div>
-
-                    <div id="summaryValuationData" class="mt-4 border-t border-gray-200 pt-4" style="display: none;">
-                        <p class="text-gray-700 text-md">Capital Value: <span id="capitalValue" class="font-semibold text-gray-900"></span></p>
-                        <p class="text-gray-700 text-md">Land Value: <span id="landValue" class="font-semibold text-gray-900"></span></p>
-                        <p class="text-gray-700 text-md">Improvement Value: <span id="improvementValue" class="font-semibold text-gray-900"></span></p>
-                        <p class="text-gray-700 text-md">Valuation Date: <span id="valuationDate" class="font-semibold text-gray-900"></span></p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="estimatedValuesSummary" class="bg-blue-50 border-l-4 border-blue-400 text-blue-800 p-4 rounded-lg shadow-md mb-8" role="alert" style="display: none;">
-                <p class="font-bold text-lg mb-2">Estimated Value Summary:</p>
-                <div id="summaryValuesContent" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    </div>
-                <p class="text-sm mt-4 text-blue-700">
-                    These are estimated median values aggregated from available sources. For detailed information, please visit the individual property websites below.
-                </p>
-            </div>
-
-            <h2 class="text-2xl font-bold text-gray-800 mb-5">Property Links & Estimated Values</h2>
-            
             <div class="overflow-x-auto">
                 <table id="estimatedValuesTable" class="min-w-full bg-white border border-gray-200">
                     <thead>
@@ -101,299 +66,670 @@
                         </tr>
                     </thead>
                     <tbody id="estimatedValuesTableBody">
-                        </tbody>
+                    </tbody>
                 </table>
             </div>
-
-            <div id="propertyLinks" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                </div>
-        </section>
-    </main>
-
-    <footer class="bg-gray-800 text-white py-6 mt-10">
-        <div class="container mx-auto px-4 text-center">
-            <p>&copy; 2024 NZ Property Value Finder. All rights reserved.</p>
-            <p class="text-sm mt-2">Data provided by third-party sources. Always verify information on the respective websites.</p>
+            <div id="estimatedValuesSummary" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center text-gray-800">
+            </div></div>
+            <div class="container">
+                <h2>Property Page Links</h2>
+            <ul id="urlList">
+            </ul>
+               </div>  
         </div>
-    </footer>
+    </div>
+
+    <div class="disclaimer-text">
+        Disclaimer: While we've done our best to correctly find property pages for an address, it may not be exact. Please review property links for accuracy. Some addresses will not be matched exactly because of unit numbers etc.
+    </div>
 
     <script>
+        let autocomplete;
+
+        function initAutocomplete() {
+            const addressInput = document.getElementById('addressInput');
+            const searchButton = document.getElementById('searchButton'); // Get the search button
+            if (addressInput) {
+                autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                    types: ['address'],
+                    componentRestrictions: { 'country': ['nz'] }
+                });
+                autocomplete.addListener('place_changed', onPlaceChanged);
+
+                // Add an input event listener to disable the button if text is typed without selecting a suggestion
+                addressInput.addEventListener('input', () => {
+                    searchButton.disabled = true; // Disable button on any input change
+                });
+
+            } else {
+                console.error("Address input element not found. Autocomplete could not be initialized.");
+            }
+        }
+
+        function onPlaceChanged() {
+            const place = autocomplete.getPlace();
+            const addressInput = document.getElementById('addressInput');
+            const errorMessage = document.getElementById('errorMessage');
+            const searchButton = document.getElementById('searchButton'); // Get the search button
+
+            if (!place || !place.address_components || !place.geometry) {
+                console.warn("No valid place details available for input: '" + (place && place.name ? place.name : addressInput.value) + "'");
+                searchButton.disabled = true; // Keep button disabled if no valid place
+                return;
+            }
+
+            let subpremise = '';
+            let streetNumber = '';
+            let route = '';
+            let currentSublocality = '';
+            let currentLocality = '';
+
+            for (let i = 0; i < place.address_components.length; i++) {
+                const component = place.address_components[i];
+                const types = component.types; 
+
+                if (types.includes('subpremise')) {
+                    subpremise = component.long_name;
+                } else if (types.includes('street_number')) {
+                    streetNumber = component.long_name;
+                } else if (types.includes('route')) {
+                    route = component.long_name;
+                } else if (types.includes('sublocality_level_1') || types.includes('sublocality')) {
+                    currentSublocality = component.long_name; 
+                } else if (types.includes('locality')) {
+                    currentLocality = component.long_name;
+                }
+            }
+            
+            let addressParts = [];
+            let streetAddressPart = '';
+
+            if (route) { 
+                if (subpremise && streetNumber) {
+                    streetAddressPart = `${subpremise}/${streetNumber} ${route}`;
+                } else if (streetNumber) {
+                    streetAddressPart = `${streetNumber} ${route}`;
+                } else if (subpremise) {
+                    streetAddressPart = `${subpremise} ${route}`;
+                } else { 
+                    streetAddressPart = route;
+                }
+                addressParts.push(streetAddressPart);
+            }
+
+            if (currentSublocality) {
+                addressParts.push(currentSublocality);
+            } else if (currentLocality && streetAddressPart) { 
+                addressParts.push(currentLocality);
+            }
+
+            const desiredAddress = addressParts.join(', ');
+
+            if (desiredAddress) {
+                addressInput.value = desiredAddress;
+                if (errorMessage) errorMessage.textContent = '';
+                searchButton.disabled = false; // Enable the search button if a valid address is parsed
+            } else {
+                let fallbackValue = place.formatted_address || place.name || "";
+                addressInput.value = fallbackValue;
+                if (errorMessage) {
+                    if (fallbackValue) {
+                        errorMessage.textContent = "Could not parse specific address components, using full address.";
+                    } else {
+                        errorMessage.textContent = "Address details could not be retrieved.";
+                    }
+                }
+                searchButton.disabled = true; // Keep button disabled if no desired address
+                console.warn("Failed to parse desired address components. Using fallback:", fallbackValue);
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
             const addressInput = document.getElementById('addressInput');
             const searchButton = document.getElementById('searchButton');
-            const loadingSpinner = document.getElementById('loadingSpinner');
+            const urlList = document.getElementById('urlList');
             const errorMessage = document.getElementById('errorMessage');
-            const resultsSection = document.getElementById('resultsSection');
-            const propertyLinksContainer = document.getElementById('propertyLinks');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const summaryDataContainer = document.getElementById('summaryData');
+            const summaryPhotoWrapper = document.getElementById('summaryPhotoWrapper');
+            const summaryTextContent = document.getElementById('summaryTextContent');
+            const resultsSection = document.getElementById('results');
             const estimatedValuesTableBody = document.getElementById('estimatedValuesTableBody');
-            const summaryDataContainer = document.getElementById('summaryDataContainer');
-            const summaryPropertyPhoto = document.getElementById('summaryPropertyPhoto');
-            const summaryLastSold = document.getElementById('summaryLastSold');
-            const lastSoldValue = document.getElementById('lastSoldValue');
-            const summaryAddress = document.getElementById('summaryAddress');
-            const summaryValuationData = document.getElementById('summaryValuationData');
-            const capitalValueSpan = document.getElementById('capitalValue');
-            const landValueSpan = document.getElementById('landValue');
-            const improvementValueSpan = document.getElementById('improvementValue');
-            const valuationDateSpan = document.getElementById('valuationDate');
             const estimatedValuesSummary = document.getElementById('estimatedValuesSummary');
-            const summaryValuesContent = document.getElementById('summaryValuesContent');
             const introductoryText = document.getElementById('introductoryText');
+            const overallSummaryTextElement = document.getElementById('overallSummaryText'); // NEW LINE
 
-
-            let autocomplete;
-
-            // Initialize Google Autocomplete
-            function initAutocomplete() {
-                // Ensure the Google Maps Places API script is loaded before initializing
-                if (typeof google === 'undefined' || typeof google.maps === 'undefined' || typeof google.maps.places === 'undefined') {
-                    console.warn('Google Maps Places API not loaded. Retrying in 500ms...');
-                    setTimeout(initAutocomplete, 500); // Retry after 500ms
-                    return;
+            function parseCurrencyToNumber(currencyString) {
+                if (!currencyString || typeof currencyString !== 'string') {
+                    return NaN;
                 }
-
-                autocomplete = new google.maps.places.Autocomplete(addressInput, {
-                    bounds: new google.maps.LatLngBounds(
-                        new google.maps.LatLng(-47.3, 166.3), // Southwest NZ
-                        new google.maps.LatLng(-34.3, 178.6)  // Northeast NZ
-                    ),
-                    strictBounds: true,
-                    componentRestrictions: { country: 'nz' },
-                    fields: ['formatted_address', 'place_id', 'geometry'],
-                    types: ['address']
-                });
-
-                autocomplete.addListener('place_changed', () => {
-                    const place = autocomplete.getPlace();
-                    if (place.formatted_address) {
-                        addressInput.value = place.formatted_address;
-                        searchButton.disabled = false; // Enable search button
-                    } else {
-                        searchButton.disabled = true; // Keep disabled if no valid address
-                    }
-                });
-
-                // Disable search button by default
-                searchButton.disabled = true;
-
-                // Re-enable search button if user types and then selects an autocomplete suggestion
-                addressInput.addEventListener('input', () => {
-                    // Disable button if input is cleared or doesn't match a selection
-                    if (!addressInput.value) {
-                        searchButton.disabled = true;
-                    }
-                });
+                let cleanedString = currencyString.replace(/[\$,]/g, '').trim();
+                let numericValue = parseFloat(cleanedString);
+                if (cleanedString.endsWith('M')) {
+                    numericValue *= 1000000;
+                } else if (cleanedString.endsWith('K')) {
+                    numericValue *= 1000;
+                }
+                return numericValue;
             }
 
-            // Dynamically load Google Maps Places API
-            const googleMapsScript = document.createElement('script');
-            googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_Maps_API_KEY}&libraries=places&callback=initAutocomplete`;
-            googleMapsScript.async = true;
-            googleMapsScript.defer = true;
-            document.head.appendChild(googleMapsScript);
+            async function loadGoogleMapsScript() {
+                try {
+                    const response = await fetch('/api/get-google-maps-key');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `Failed to fetch API key: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    const googleMapsApiKey = data.apiKey;
 
-            // Make sure initAutocomplete is globally accessible
-            window.initAutocomplete = initAutocomplete;
+                    if (!googleMapsApiKey) {
+                        throw new Error('API key not returned by server.');
+                    }
+
+                    const googleMapsScript = document.createElement('script');
+                    googleMapsScript.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=initAutocomplete`;
+                    googleMapsScript.async = true;
+                    googleMapsScript.defer = true; 
+                    document.head.appendChild(googleMapsScript);
+
+                } catch (error) {
+                    console.error("Error loading Google Maps API script:", error);
+                    if(errorMessage) errorMessage.textContent = "Error initializing maps: " + error.message;
+                    if (addressInput) addressInput.disabled = true;
+                    if (searchButton) searchButton.disabled = true;
+                }
+            }
+            
+            loadGoogleMapsScript();
+
+            function addLinkToUI(siteName, urlOrError, isError = false, scrapedData = null) {
+                const listItem = document.createElement('li');
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'site-name';
+                nameSpan.textContent = siteName;
+                listItem.appendChild(nameSpan);
+
+                if (isError) {
+                    const textSpan = document.createElement('span');
+                    textSpan.className = 'no-link';
+                    textSpan.classList.add('error-text-small'); 
+                    textSpan.textContent = urlOrError;
+                    listItem.appendChild(textSpan);
+                } else {
+                    const link = document.createElement('a');
+                    link.href = urlOrError;
+                    link.textContent = urlOrError;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'text-blue-700 hover:underline font-medium'; // Added classes here
+                    listItem.appendChild(link);
+
+                    if (scrapedData && Object.keys(scrapedData).length > 0 && !scrapedData.estimatedValues) {
+                        const dataDiv = document.createElement('div');
+                        dataDiv.className = 'scraped-data';
+                        let dataText = ''; // No data text to display here
+                        dataDiv.innerHTML = dataText.trim().replace(/\n/g, '<br>');
+                        if (dataText.trim()) {
+                            listItem.appendChild(dataDiv);
+                        }
+                    }
+                }
+                urlList.appendChild(listItem);
+            }
+
+
+            let lowValuesForBolding = [];
+            let highValuesForBolding = [];
+            let allEstimatedValues = []; // Array to store all estimated values for sorting
+
+            function displayEstimatedValues(siteName, url, estimatedValues, urlError = null) {
+                const rowData = { siteName, url, estimatedValues, urlError };
+                allEstimatedValues.push(rowData); // Store data to sort later
+            }
+
+            function renderEstimatedValuesTable() {
+                estimatedValuesTableBody.innerHTML = ''; // Clear existing rows
+
+                // Define a mapping of site names to favicon URLs
+                const faviconMap = {
+                    "RealEstate.co.nz": "https://www.realestate.co.nz/favicon.ico",
+                    "OneRoof.co.nz": "https://www.oneroof.co.nz/favicon.ico",
+                    "Homes.co.nz": "https://homes.co.nz/favicon.ico",
+                    "TradeMe.co.nz": "https://www.trademe.co.nz/favicon.ico",
+                    "QV.co.nz": "https://content.quotablevalue.co.nz/static/favicon.ico",
+                    "PropertyValue.co.nz": "https://www.propertyvalue.co.nz/static/media/favicon.ico"
+                };
+
+                // Sort by medium value, highest to lowest
+                allEstimatedValues.sort((a, b) => {
+                    const mediumA = parseCurrencyToNumber(a.estimatedValues.medium);
+                    const mediumB = parseCurrencyToNumber(b.estimatedValues.medium);
+                    return mediumB - mediumA; // Descending order
+                });
+
+                lowValuesForBolding = []; // Reset for new rendering
+                highValuesForBolding = []; // Reset for new rendering
+
+                allEstimatedValues.forEach(rowData => {
+                    const { siteName, url, estimatedValues, urlError } = rowData;
+                    const row = estimatedValuesTableBody.insertRow();
+                    row.className = 'text-sm text-gray-800';
+
+                    const websiteCell = row.insertCell();
+                    websiteCell.className += ' py-2 px-4 border-b border-gray-200 flex items-center'; // Add flex and align-items-center
+
+                    const faviconUrl = faviconMap[siteName];
+                    if (faviconUrl) {
+                        const faviconImg = document.createElement('img');
+                        faviconImg.src = faviconUrl;
+                        faviconImg.alt = `${siteName} favicon`;
+                        faviconImg.classList.add('site-favicon'); // Add a class for styling
+                        websiteCell.appendChild(faviconImg);
+                    }
+
+                    if (url && url !== 'N/A' && url !== 'No direct link found.' && !url.includes("Error")) {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.textContent = siteName;
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.className = 'text-blue-700 hover:underline font-medium ml-2'; // Added ml-2 for spacing
+                        websiteCell.appendChild(link);
+
+                        if (urlError) {
+                            const errorSpan = document.createElement('span');
+                            errorSpan.classList.add('error-text-small'); 
+                            errorSpan.textContent = ` (${urlError})`;
+                            websiteCell.appendChild(errorSpan);
+                        }
+
+                    } else {
+                        const textSpan = document.createElement('span');
+                        textSpan.textContent = siteName;
+                        textSpan.classList.add('ml-2'); // Add ml-2 for spacing
+                        websiteCell.appendChild(textSpan);
+                        if (urlError) {
+                            const errorSpan = document.createElement('span');
+                            errorSpan.classList.add('error-text-small'); 
+                            errorSpan.textContent = ` (${urlError})`;
+                            websiteCell.appendChild(errorSpan);
+                        } else if (url && url.includes("Error")) {
+                            const errorSpan = document.createElement('span');
+                            errorSpan.classList.add('error-text-small'); 
+                            errorSpan.textContent = ` (Error retrieving URL)`;
+                            websiteCell.appendChild(errorSpan);
+                        }
+                    }
+                    websiteCell.className += ' py-2 px-4 border-b border-gray-200'; // Keep this for existing padding/border
+
+
+                    const lowCell = row.insertCell();
+                    const lowValue = estimatedValues.low || 'N/A';
+                    lowCell.textContent = lowValue;
+                    lowCell.className = 'py-2 px-4 border-b border-gray-200';
+                    const numericLow = parseCurrencyToNumber(lowValue);
+                    if (!isNaN(numericLow)) {
+                        lowValuesForBolding.push({ value: numericLow, cell: lowCell });
+                    }
+
+                    const mediumCell = row.insertCell();
+                    mediumCell.textContent = estimatedValues.medium || 'N/A';
+                    mediumCell.className = 'py-2 px-4 border-b border-gray-200';
+                    // Note: QV.co.nz medium value is already abbreviated, parseCurrencyToNumber handles K/M
+                    const numericMediumForHighlight = parseCurrencyToNumber(estimatedValues.medium);
+                    if (!isNaN(numericMediumForHighlight)) {
+                         // We don't need to add to mediumValues here, as it's for calculation, not highlighting.
+                         // But if we wanted to highlight highest medium, we'd add it similarly to low/high.
+                    }
+
+
+                    const highCell = row.insertCell();
+                    const highValue = estimatedValues.high || 'N/A';
+                    highCell.textContent = highValue;
+                    highCell.className = 'py-2 px-4 border-b border-gray-200';
+                    const numericHigh = parseCurrencyToNumber(highValue);
+                    if (!isNaN(numericHigh)) {
+                        highValuesForBolding.push({ value: numericHigh, cell: highCell });
+                    }
+                });
+
+                highlightMinMaxValues(); // Re-highlight after sorting and rendering
+            }
+
+            function highlightMinMaxValues() {
+                if (lowValuesForBolding.length > 0) {
+                    const minLowValue = Math.min(...lowValuesForBolding.map(item => item.value));
+                    lowValuesForBolding.forEach(item => {
+                        if (item.value === minLowValue) {
+                            item.cell.classList.add('bold-value');
+                        }
+                    });
+                }
+
+                if (highValuesForBolding.length > 0) {
+                    const maxHighValue = Math.max(...highValuesForBolding.map(item => item.value));
+                    highValuesForBolding.forEach(item => {
+                        if (item.value === maxHighValue) {
+                            item.cell.classList.add('bold-value');
+                        }
+                    });
+                }
+            }
+
 
             searchButton.addEventListener('click', async () => {
                 const address = addressInput.value.trim();
+                urlList.innerHTML = '';
+                errorMessage.textContent = '';
+                estimatedValuesTableBody.innerHTML = '';
+                estimatedValuesSummary.innerHTML = '';
+                estimatedValuesSummary.style.display = 'none';
+                overallSummaryTextElement.innerHTML = ''; // NEW LINE
+                overallSummaryTextElement.style.display = 'none'; // NEW LINE
 
-                if (!address) {
-                    errorMessage.textContent = 'Please enter a valid address.';
-                    errorMessage.style.display = 'block';
-                    resultsSection.style.display = 'none';
-                    introductoryText.style.display = 'block'; // Show introductory text again
+                summaryDataContainer.style.display = 'none';
+                summaryPhotoWrapper.innerHTML = '';
+                summaryTextContent.innerHTML = '';
+                resultsSection.style.display = 'none';
+
+                introductoryText.style.display = 'none';
+
+                lowValuesForBolding = [];
+                highValuesForBolding = [];
+                allEstimatedValues = []; // Clear for new search
+
+                if (address === '') {
+                    errorMessage.textContent = 'Please enter an address.';
                     return;
                 }
 
                 loadingSpinner.style.display = 'block';
-                errorMessage.style.display = 'none';
-                resultsSection.style.display = 'none';
-                propertyLinksContainer.innerHTML = ''; // Clear previous links
-                estimatedValuesTableBody.innerHTML = ''; // Clear previous table data
-                summaryDataContainer.style.display = 'none'; // Hide summary
-                summaryPropertyPhoto.style.display = 'none';
-                summaryLastSold.style.display = 'none';
-                summaryValuationData.style.display = 'none';
-                estimatedValuesSummary.style.display = 'none';
-                summaryValuesContent.innerHTML = '';
-                introductoryText.style.display = 'none'; // Hide introductory text
+                searchButton.disabled = true;
 
+                const apiEndpoints = [
+                    { siteName: "RealEstate.co.nz", url: '/api/get-realestate-url', scrapeValuesUrl: '/api/scrape-realestate-values' },
+                    { siteName: "OneRoof.co.nz", url: '/api/get-oneroof-url', scrapeValuesUrl: '/api/scrape-oneroof-values' },
+                    { siteName: "Homes.co.nz", url: '/api/get-homes-url', scrapeValuesUrl: '/api/scrape-homes-values' },
+                    { siteName: "TradeMe.co.nz", url: '/api/get-trademe-url' },
+                    { siteName: "QV.co.nz", url: '/api/get-qv-url', scrapeValuesUrl: '/api/scrape-qv-values' }, 
+                    { siteName: "PropertyValue.co.nz", url: '/api/get-propertyvalue-url', scrapeValuesUrl: '/api/scrape-propertyvalue-values' }
+                ];
+
+                const fetchPromises = apiEndpoints.map(apiInfo =>
+                    (async () => {
+                        try {
+                            const urlResponse = await fetch(apiInfo.url, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ address: address })
+                            });
+
+                            if (!urlResponse.ok) {
+                                const errorData = await urlResponse.json().catch(() => ({ error: `Failed to parse error from ${apiInfo.siteName} URL API` }));
+                                throw new Error(errorData.error || `HTTP error! Status: ${urlResponse.status} from ${apiInfo.siteName} URL API`);
+                            }
+
+                            const urlData = await urlResponse.json();
+                            let finalUrl = urlData.url;
+                            let combinedScrapedData = urlData.data || {};
+
+                            if (apiInfo.scrapeValuesUrl && finalUrl && !finalUrl.includes("No direct link found.")) {
+                                try {
+                                    const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ url: finalUrl })
+                                    });
+                                    if (scrapeResponse.ok) {
+                                        const scrapeData = await scrapeResponse.json();
+                                        combinedScrapedData.estimatedValues = scrapeData.estimatedValues;
+                                    } else {
+                                        const scrapeErrorData = await scrapeResponse.json().catch(() => ({ error: `Failed to parse scrape error from ${apiInfo.siteName}` }));
+                                        console.error(`Failed to scrape ${apiInfo.siteName} values for ${finalUrl}:`, scrapeErrorData.error);
+                                        combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
+                                    }
+                                } catch (scrapeError) {
+                                    console.error(`Error during ${apiInfo.siteName} value scraping for ${finalUrl}:`, scrapeError);
+                                    combinedScrapedData.estimatedValues = { low: 'Error', medium: 'Error', high: 'Error' };
+                                }
+                            }
+                            if (apiInfo.siteName === "PropertyValue.co.nz" && urlData.data) {
+                                combinedScrapedData = { ...combinedScrapedData, ...urlData.data };
+                            }
+
+                            return { siteName: apiInfo.siteName, result: finalUrl, scrapedData: combinedScrapedData };
+
+                        } catch (error) {
+                            return { siteName: apiInfo.siteName, error: error.message };
+                        }
+                    })()
+                );
 
                 try {
-                    const apiEndpoints = [
-                        { name: 'Homes.co.nz', url: '/api/get-homes-url', favicon: 'https://homes.co.nz/favicon.ico', scrape: true, scrapeApi: '/api/scrape-homes-values' },
-                        { name: 'OneRoof.co.nz', url: '/api/get-oneroof-url', favicon: 'https://www.oneroof.co.nz/favicon.ico', scrape: true, scrapeApi: '/api/scrape-oneroof-values' },
-                        { name: 'QV.co.nz', url: '/api/get-qv-url', favicon: 'https://content.quotablevalue.co.nz/static/favicon.ico', scrape: false },
-                        { name: 'RealEstate.co.nz', url: '/api/get-realestate-url', favicon: 'https://www.realestate.co.nz/favicon.ico', scrape: true, scrapeApi: '/api/scrape-realestate-values' }, // New RealEstate
-                        { name: 'TradeMe.co.nz', url: '/api/get-trademe-url', favicon: 'https://www.trademe.co.nz/favicon.ico', scrape: true, scrapeApi: '/api/scrape-trademe-values' }, // New TradeMe
-                        { name: 'PropertyValue.co.nz', url: '/api/get-propertyvalue-url', favicon: 'https://www.propertyvalue.co.nz/static/media/favicon.ico', scrape: false, returnData: true } // Modified to return data directly
-                    ];
+                    const results = await Promise.allSettled(fetchPromises);
 
                     let anyLinkGenerated = false;
-                    let pvDataFound = false; // Flag for PropertyValue.co.nz data
-                    let mediumValues = []; // Array to hold medium values for summary
+                    let pvDataFound = false;
+                    let pvDataForCalculation = null;
+                    let mediumValues = [];
+                    let homesEstimatedValues = null;
+                    let pvCapitalValueNumeric = NaN;
 
-                    // Use Promise.allSettled to allow all API calls to complete independently
-                    const results = await Promise.allSettled(
-                        apiEndpoints.map(async (endpoint) => {
-                            try {
-                                const response = await fetch(endpoint.url, {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ address })
-                                });
+                    // NEW SUMMARY TEXT RELATED VARIABLES
+                    let sitesWithEstimatesCount = 0;
+                    const totalSitesForSummary = apiEndpoints.length; // Will be 6
+                    let numericMediumValuesForVariance = [];
+                    let broadestRangeSiteName = 'N/A';
+                    let broadestRangeValue = 0;
 
-                                const data = await response.json();
+                    results.forEach(promiseResult => {
+                        if (promiseResult.status === 'fulfilled') {
+                            const { siteName, result, scrapedData } = promiseResult.value;
 
-                                if (!response.ok) {
-                                    throw new Error(data.error || `Failed to get URL for ${endpoint.name}`);
-                                }
-
-                                const linkUrl = data.url;
-                                const scrapedData = data.data; // For PropertyValue.co.nz
-
-                                // Handle PropertyValue.co.nz data specifically
-                                if (endpoint.name === 'PropertyValue.co.nz' && scrapedData) {
-                                    pvDataFound = true;
-                                    summaryAddress.textContent = address; // Set address in summary
-                                    
-                                    if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A') {
-                                        summaryPropertyPhoto.src = scrapedData.propertyPhotoSrc;
-                                        summaryPropertyPhoto.style.display = 'block';
-                                    } else {
-                                        summaryPropertyPhoto.style.display = 'none'; // Hide if no photo
-                                    }
-                                    
-                                    if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A') {
-                                        lastSoldValue.textContent = scrapedData.lastSold;
-                                        summaryLastSold.style.display = 'block';
-                                    } else {
-                                        summaryLastSold.style.display = 'none'; // Hide if no last sold info
-                                    }
-
-                                    // Display valuation data
-                                    if (scrapedData.capitalValue !== 'N/A' || scrapedData.landValue !== 'N/A' || scrapedData.improvementValue !== 'N/A' || scrapedData.valuationDate !== 'N/A') {
-                                        capitalValueSpan.textContent = scrapedData.capitalValue;
-                                        landValueSpan.textContent = scrapedData.landValue;
-                                        improvementValueSpan.textContent = scrapedData.improvementValue;
-                                        valuationDateSpan.textContent = scrapedData.valuationDate;
-                                        summaryValuationData.style.display = 'block';
-                                    } else {
-                                        summaryValuationData.style.display = 'none';
-                                    }
-                                }
-
-                                if (linkUrl) {
-                                    anyLinkGenerated = true;
-
-                                    let lowValue = 'N/A';
-                                    let mediumValue = 'N/A';
-                                    let highValue = 'N/A';
-
-                                    // If scraping is enabled for this endpoint
-                                    if (endpoint.scrape && endpoint.scrapeApi) {
-                                        try {
-                                            const scrapeResponse = await fetch(endpoint.scrapeApi, {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify({ url: linkUrl })
-                                            });
-
-                                            const scrapeData = await scrapeResponse.json();
-
-                                            if (scrapeResponse.ok && scrapeData.estimatedValues) {
-                                                lowValue = scrapeData.estimatedValues.low || 'N/A';
-                                                mediumValue = scrapeData.estimatedValues.medium || 'N/A';
-                                                highValue = scrapeData.estimatedValues.high || 'N/A';
-                                            } else {
-                                                console.warn(`Scraping failed for ${endpoint.name}:`, scrapeData.error || 'Unknown error');
-                                            }
-                                        } catch (scrapeError) {
-                                            console.error(`Error during scraping for ${endpoint.name}:`, scrapeError);
-                                        }
-                                    } else if (endpoint.name === 'PropertyValue.co.nz' && scrapedData) {
-                                        // Use direct data for PropertyValue.co.nz if available
-                                        lowValue = scrapedData.estimatedValueLow || 'N/A';
-                                        mediumValue = scrapedData.estimatedValueMedium || 'N/A';
-                                        highValue = scrapedData.estimatedValueHigh || 'N/A';
-                                    }
-
-                                    // Populate the table
-                                    const row = estimatedValuesTableBody.insertRow();
-                                    row.className = 'text-sm text-gray-800'; // Apply consistent styling
-                                    
-                                    const sourceCell = row.insertCell();
-                                    // Modified this line to wrap img in a, add flex to a, and add mr-2 to img
-                                    sourceCell.className = 'py-2 px-4 border-b border-gray-200 flex items-center';
-                                    sourceCell.innerHTML = `
-                                        <a href="${linkUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center text-blue-700 hover:underline font-medium">
-                                            <img src="${endpoint.favicon}" alt="${endpoint.name} favicon" class="site-favicon mr-2">
-                                            ${endpoint.name}
-                                        </a>
-                                    `;
-
-                                    const lowCell = row.insertCell();
-                                    lowCell.className = `py-2 px-4 border-b border-gray-200 ${lowValue === 'N/A' ? '' : 'bold-value'}`;
-                                    lowCell.textContent = lowValue;
-
-                                    const mediumCell = row.insertCell();
-                                    mediumCell.className = `py-2 px-4 border-b border-gray-200 ${mediumValue === 'N/A' ? '' : 'bold-value'}`;
-                                    mediumCell.textContent = mediumValue;
-
-                                    const highCell = row.insertCell();
-                                    highCell.className = `py-2 px-4 border-b border-gray-200 ${highValue === 'N/A' ? '' : 'bold-value'}`;
-                                    highCell.textContent = highValue;
-
-                                    if (mediumValue !== 'N/A' && mediumValue !== 'Error') {
-                                        mediumValues.push({ name: endpoint.name, value: mediumValue });
-                                    }
-
-                                }
-                                return { status: 'fulfilled', value: { name: endpoint.name, url: linkUrl, scrapedData: scrapedData, values: { low: lowValue, medium: mediumValue, high: highValue } } } ;
-                            } catch (error) {
-                                console.error(`Error for ${endpoint.name}:`, error.message);
-                                // Optionally, add a row to the table indicating an error
-                                const row = estimatedValuesTableBody.insertRow();
-                                row.className = 'text-sm text-gray-800 bg-red-50';
-                                row.innerHTML = `
-                                    <td class="py-2 px-4 border-b border-gray-200 flex items-center">
-                                        <img src="${endpoint.favicon}" alt="${endpoint.name} favicon" class="site-favicon mr-2">
-                                        ${endpoint.name}
-                                    </td>
-                                    <td colspan="3" class="py-2 px-4 border-b border-gray-200 text-red-600">
-                                        ${error.message.includes('No property ID found') || error.message.includes('No direct') || error.message.includes('No results') || error.message.includes('URL not found') ? 'Address not found or no direct link available.' : 'Failed to retrieve data.'}
-                                    </td>
-                                `;
-                                return { status: 'rejected', reason: { name: endpoint.name, error: error.message } };
+                            if (siteName === "Homes.co.nz" && scrapedData && scrapedData.estimatedValues) {
+                                homesEstimatedValues = scrapedData.estimatedValues;
                             }
-                        })
-                    );
 
-                    // Sort medium values for summary display (e.g., lowest to highest)
-                    mediumValues.sort((a, b) => {
-                        const parseValue = (val) => parseFloat(val.replace(/[^0-9.]/g, ''));
-                        return parseValue(a.value) - parseValue(b.value);
+                            if (siteName === "TradeMe.co.nz" && homesEstimatedValues) {
+                                if (!scrapedData.estimatedValues || Object.values(scrapedData.estimatedValues).every(v => v === 'N/A' || v === 'Error')) {
+                                   scrapedData.estimatedValues = { ...homesEstimatedValues };
+                                }
+                            }
+                            
+                            if (siteName === "PropertyValue.co.nz" && scrapedData) {
+                                let summaryHtml = '';
+                                
+                                let displayLastSold = scrapedData.lastSold; 
+                                const lastSoldPrefix = 'Last Sold on ';
+                                if (scrapedData.lastSold && typeof scrapedData.lastSold === 'string' && scrapedData.lastSold.startsWith(lastSoldPrefix)) {
+                                    displayLastSold = scrapedData.lastSold.substring(lastSoldPrefix.length);
+                                }
+
+                                if (scrapedData.lastSold && scrapedData.lastSold !== 'N/A' && scrapedData.lastSold !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${displayLastSold}</div>`;
+                                } else {
+                                     summaryHtml += `<div class="property-value-detail"><strong>Last Sold:</strong> ${displayLastSold || 'N/A'}</div>`;
+                                }
+
+                                if (scrapedData.capitalValue && scrapedData.capitalValue !== 'N/A' && scrapedData.capitalValue !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue}</div>`;
+                                    pvCapitalValueNumeric = parseCurrencyToNumber(scrapedData.capitalValue);
+                                } else {
+                                     summaryHtml += `<div class="property-value-detail"><strong>Capital Value:</strong> ${scrapedData.capitalValue || 'N/A'}</div>`;
+                                }
+
+                                if (scrapedData.landValue && scrapedData.landValue !== 'N/A' && scrapedData.landValue !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Land Value:</strong> ${scrapedData.landValue}</div>`;
+                                }
+                                if (scrapedData.improvementValue && scrapedData.improvementValue !== 'N/A' && scrapedData.improvementValue !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Improvement Value:</strong> ${scrapedData.improvementValue}</div>`;
+                                }
+                                if (scrapedData.valuationDate && scrapedData.valuationDate !== 'N/A' && scrapedData.valuationDate !== 'Not Found on Page') {
+                                    summaryHtml += `<div class="property-value-detail"><strong>Valuation Date:</strong> ${scrapedData.valuationDate}</div>`;
+                                }
+                                summaryTextContent.innerHTML = summaryHtml;
+                                pvDataFound = true;
+                                pvDataForCalculation = scrapedData;
+                                if (scrapedData.propertyPhotoSrc && scrapedData.propertyPhotoSrc !== 'N/A' && scrapedData.propertyPhotoSrc !== 'Not Found on Page') {
+                                    const img = document.createElement('img');
+                                    img.src = scrapedData.propertyPhotoSrc;
+                                    img.alt = 'Property Photo';
+                                    summaryPhotoWrapper.appendChild(img);
+                                }
+                            }
+
+                            if (result) {
+                                addLinkToUI(siteName, result, false, scrapedData);
+                                anyLinkGenerated = true;
+                            } else {
+                                addLinkToUI(siteName, "No direct link found.", true);
+                            }
+
+                            if (scrapedData && scrapedData.estimatedValues) {
+                                const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
+                                displayEstimatedValues(siteName, result, scrapedData.estimatedValues, errorForTable);
+
+                                // Logic for summary text
+                                const hasValidEstimate = Object.values(scrapedData.estimatedValues).some(
+                                    val => val !== 'N/A' && val !== 'Error' && val !== undefined
+                                );
+                                if (hasValidEstimate) {
+                                    sitesWithEstimatesCount++;
+                                }
+
+                                const numericMedium = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
+                                if (!isNaN(numericMedium)) {
+                                    numericMediumValuesForVariance.push(numericMedium);
+                                }
+
+                                const numericLow = parseCurrencyToNumber(scrapedData.estimatedValues.low);
+                                const numericHigh = parseCurrencyToNumber(scrapedData.estimatedValues.high);
+                                if (!isNaN(numericLow) && !isNaN(numericHigh)) {
+                                    const currentRange = numericHigh - numericLow;
+                                    if (currentRange > broadestRangeValue) {
+                                        broadestRangeValue = currentRange;
+                                        broadestRangeSiteName = siteName;
+                                    }
+                                }
+
+                                if (scrapedData.estimatedValues.medium && scrapedData.estimatedValues.medium !== 'N/A' && scrapedData.estimatedValues.medium !== 'Error') {
+                                    const numericValue = parseCurrencyToNumber(scrapedData.estimatedValues.medium);
+                                    if (!isNaN(numericValue)) {
+                                        mediumValues.push(numericValue);
+                                    }
+                                }
+                            } else {
+                                const errorForTable = (result && result.includes("No direct link found.")) ? result : null;
+                                displayEstimatedValues(siteName, result, { low: 'N/A', medium: 'N/A', high: 'N/A' }, errorForTable);
+                            }
+
+                        } else { 
+                            const siteName = promiseResult.reason && promiseResult.reason.siteName ? promiseResult.reason.siteName : 'Unknown Site';
+                            const errorMsg = promiseResult.reason && promiseResult.reason.error ? promiseResult.reason.error : "Unknown error occurred.";
+                            
+                            addLinkToUI(siteName, errorMsg, true);
+                            displayEstimatedValues(siteName, null, { low: 'Error', medium: 'Error', high: 'Error' }, errorMsg);
+                        }
                     });
 
-                    // Display summary values
+                    renderEstimatedValuesTable(); // Call this after allEstimatedValues is populated
+
+                    // GENERATE AND DISPLAY SUMMARY TEXT
+                    let summaryParts = [];
+                    summaryParts.push(`We found property estimates across <strong>${sitesWithEstimatesCount} of ${totalSitesForSummary} sites</strong>.`);
+
+                    if (numericMediumValuesForVariance.length > 1) {
+                        const minMedium = Math.min(...numericMediumValuesForVariance);
+                        const maxMedium = Math.max(...numericMediumValuesForVariance);
+                        const variance = maxMedium - minMedium;
+                        summaryParts.push(`The difference between the highest and lowest median estimates was <strong>$${variance.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</strong>.`);
+                    } else if (numericMediumValuesForVariance.length === 1) {
+                        summaryParts.push(`Only one medium estimate was found, so variance cannot be calculated.`);
+                    } else {
+                        summaryParts.push(`No valid medium estimates were found to calculate variance.`);
+                    }
+
+                    if (broadestRangeValue > 0) {
+                        summaryParts.push(`<strong>${broadestRangeSiteName}</strong> has the broadest range between low and high estimate of <strong>$${broadestRangeValue.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</strong>.`);
+                    } else {
+                        summaryParts.push(`No valid low/high ranges were found to determine the broadest range.`);
+                    }
+
+                    if (overallSummaryTextElement) {
+                        overallSummaryTextElement.innerHTML = summaryParts.join('<br>');
+                        overallSummaryTextElement.style.display = 'block';
+                    }
+                    // END GENERATE AND DISPLAY SUMMARY TEXT
+
                     if (mediumValues.length > 0) {
-                        const summaryContentHtml = `
-                            <div class="flex flex-col">
-                                <span class="text-sm text-blue-700">Lowest Median:</span>
-                                <span class="font-bold text-lg">${mediumValues[0].value} <span class="text-base font-normal">(${mediumValues[0].name})</span></span>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm text-blue-700">Highest Median:</span>
-                                <span class="font-bold text-lg">${mediumValues[mediumValues.length - 1].value} <span class="text-base font-normal">(${mediumValues[mediumValues.length - 1].name})</span></span>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-sm text-blue-700">Average Median:</span>
-                                <span class="font-bold text-lg">${(() => {
-                                    const total = mediumValues.reduce((sum, item) => sum + parseFloat(item.value.replace(/[^0-9.]/g, '')), 0);
-                                    const average = total / mediumValues.length;
-                                    return `$${(average / 1000).toFixed(0)}K`; // Format as $X.XK
-                                })()}</span>
+                        const totalMedium = mediumValues.reduce((sum, val) => sum + val, 0);
+                        const averageMedium = totalMedium / mediumValues.length;
+
+                        let summaryContentHtml = `
+                            <div class="flex-1 text-left">
+                                <span class="font-bold">Median Value:</span>
+                                <span class="text-lg font-bold text-green-500 ml-2">
+                                    $${averageMedium.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                </span>
+                        `;
+
+                        if (!isNaN(pvCapitalValueNumeric)) {
+                            const cvDifference = averageMedium - pvCapitalValueNumeric;
+                            let differenceText;
+                            const formattedDifference = Math.abs(cvDifference).toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                            if (cvDifference > 0) {
+                                differenceText = `$${formattedDifference} above CV`;
+                            } else if (cvDifference < 0) {
+                                differenceText = `$${formattedDifference} below CV`;
+                            } else {
+                                differenceText = `$0 difference from CV`;
+                            }
+                            summaryContentHtml += `<span class="text-sm font-normal text-gray-500 block">${differenceText}</span>`;
+                        } else {
+                            summaryContentHtml += `<span class="text-sm font-normal text-gray-500 block">(Capital Value not available for comparison)</span>`;
+                        }
+                        summaryContentHtml += `</div>`; 
+
+                        let rateOfReturnHtml = '';
+                        // MODIFICATION START: Conditional coloring for annual return
+                        let annualReturnColorClass = 'text-green-500'; // Default to green
+                        // MODIFICATION END
+
+                        if (pvDataForCalculation && pvDataForCalculation.lastSold && pvDataForCalculation.lastSold !== 'N/A' && pvDataForCalculation.lastSold !== 'Not Found on Page') {
+                            const originalLastSoldForParsing = pvDataForCalculation.lastSold;
+                            const lastSoldMatch = originalLastSoldForParsing.match(/(\d{4})\s+for\s+\$?([0-9,.]+)/);
+
+                            if (lastSoldMatch && lastSoldMatch.length === 3) {
+                                const lastSoldYear = parseInt(lastSoldMatch[1]);
+                                const lastSoldPrice = parseCurrencyToNumber(lastSoldMatch[2]);
+                                const currentYear = new Date().getFullYear();
+                                const numberOfYears = currentYear - lastSoldYear;
+
+                                if (numberOfYears > 0 && lastSoldPrice > 0 && !isNaN(averageMedium) && averageMedium > 0) {
+                                    const annualReturn = (Math.pow(averageMedium / lastSoldPrice, 1 / numberOfYears) - 1) * 100;
+                                    // MODIFICATION START: Check if annualReturn is negative
+                                    if (annualReturn < 0) {
+                                        annualReturnColorClass = 'text-red-500'; 
+                                    }
+                                    // MODIFICATION END
+                                    rateOfReturnHtml = `${annualReturn.toFixed(1)}%<span class="text-sm font-normal text-gray-500 block">p.a. since ${lastSoldYear}</span>`;
+                                } else {
+                                    rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Cannot calculate</span>';
+                                }
+                            } else {
+                                rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Last sold data malformed</span>';
+                            }
+                        } else {
+                            rateOfReturnHtml = 'N/A<span class="text-sm font-normal text-gray-500 block">Last sold data missing</span>';
+                        }
+
+                        summaryContentHtml += `
+                            <div class="flex-1 text-right">
+                                <span class="font-bold">Annual Return:</span>
+                                <span class="text-lg font-bold ${annualReturnColorClass} ml-2">
+                                    ${rateOfReturnHtml}
+                                </span>
                             </div>
                         `;
 
@@ -405,19 +741,23 @@
                         summaryDataContainer.style.display = 'flex';
                     }
 
+                    if (anyLinkGenerated || mediumValues.length > 0 || pvDataFound) { 
+                        resultsSection.style.display = 'block';
+                    }
+
                     if (!anyLinkGenerated && !pvDataFound && mediumValues.length === 0) {
                         errorMessage.textContent = 'No property links, summary data, or estimated values could be generated for the given address from any site.';
-                        introductoryText.style.display = 'block'; 
-                    } else {
-                        resultsSection.style.display = 'block'; // Only show results if something was generated
+                         introductoryText.style.display = 'block'; 
                     }
 
                 } catch (error) {
                     console.error('Overall error during link generation:', error);
                     errorMessage.textContent = error.message || 'An unexpected overall error occurred during link generation.';
-                    introductoryText.style.display = 'block'; 
+                     introductoryText.style.display = 'block'; 
                 } finally {
                     loadingSpinner.style.display = 'none';
+                    // We explicitly control button state based on autocomplete selection now
+                    // searchButton.disabled = false; 
                 }
             });
         });
