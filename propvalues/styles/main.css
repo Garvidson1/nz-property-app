@@ -350,6 +350,7 @@ button#searchButton:disabled {
 
 #estimatedValuesTable tbody td {
     text-align: center; 
+    min-height: 55px;
 }
 
 /* Tailwind text-green-700 is used for this in JS, this rule might not be needed */
