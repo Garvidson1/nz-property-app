@@ -336,7 +336,12 @@
                             faviconImg.classList.add('mr-2'); // Add margin to the right of the favicon as per example
                             link.appendChild(faviconImg);
                         }
-                        link.appendChild(document.createTextNode(siteName)); // Append site name as text node
+                        // Create a span for the site name text and apply responsive hidden class
+                        const siteNameTextSpan = document.createElement('span');
+                        siteNameTextSpan.textContent = siteName;
+                        siteNameTextSpan.classList.add('hidden', 'sm:inline'); // Hide on mobile, show inline on small screens and up
+                        link.appendChild(siteNameTextSpan);
+                        
                         websiteCell.appendChild(link);
 
                         if (urlError) {
@@ -355,11 +360,12 @@
                             faviconImg.classList.add('mr-2'); // Add margin to the right of the favicon
                             websiteCell.appendChild(faviconImg);
                         }
+                        // Create a span for the site name text and apply responsive hidden class
                         const textSpan = document.createElement('span');
                         textSpan.textContent = siteName;
-                        // No ml-2 needed here as the `flex items-center` on the cell handles alignment.
-                        // If there was a favicon, the mr-2 on faviconImg will handle spacing.
+                        textSpan.classList.add('hidden', 'sm:inline'); // Hide on mobile, show inline on small screens and up
                         websiteCell.appendChild(textSpan);
+
                         if (urlError) {
                             const errorSpan = document.createElement('span');
                             errorSpan.classList.add('error-text-small'); 
