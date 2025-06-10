@@ -320,21 +320,23 @@
                     websiteCell.className += ' py-2 px-4 border-b border-gray-200 flex items-center'; // Add flex and align-items-center
 
                     const faviconUrl = faviconMap[siteName];
-                    if (faviconUrl) {
-                        const faviconImg = document.createElement('img');
-                        faviconImg.src = faviconUrl;
-                        faviconImg.alt = `${siteName} favicon`;
-                        faviconImg.classList.add('site-favicon'); // Add a class for styling
-                        websiteCell.appendChild(faviconImg);
-                    }
-
+                    
                     if (url && url !== 'N/A' && url !== 'No direct link found.' && !url.includes("Error")) {
                         const link = document.createElement('a');
                         link.href = url;
-                        link.textContent = siteName;
                         link.target = '_blank';
                         link.rel = 'noopener noreferrer';
-                        link.className = 'text-blue-700 hover:underline font-medium ml-2'; // Added ml-2 for spacing
+                        link.className = 'flex items-center text-blue-700 hover:underline font-medium';
+
+                        if (faviconUrl) {
+                            const faviconImg = document.createElement('img');
+                            faviconImg.src = faviconUrl;
+                            faviconImg.alt = `${siteName} favicon`;
+                            faviconImg.classList.add('site-favicon'); // Add a class for styling
+                            faviconImg.classList.add('mr-2'); // Add margin to the right of the favicon as per example
+                            link.appendChild(faviconImg);
+                        }
+                        link.appendChild(document.createTextNode(siteName)); // Append site name as text node
                         websiteCell.appendChild(link);
 
                         if (urlError) {
@@ -344,10 +346,19 @@
                             websiteCell.appendChild(errorSpan);
                         }
 
-                    } else {
+                    } else { // No valid URL, just display text and favicon
+                        if (faviconUrl) {
+                            const faviconImg = document.createElement('img');
+                            faviconImg.src = faviconUrl;
+                            faviconImg.alt = `${siteName} favicon`;
+                            faviconImg.classList.add('site-favicon'); // Add a class for styling
+                            faviconImg.classList.add('mr-2'); // Add margin to the right of the favicon
+                            websiteCell.appendChild(faviconImg);
+                        }
                         const textSpan = document.createElement('span');
                         textSpan.textContent = siteName;
-                        textSpan.classList.add('ml-2'); // Add ml-2 for spacing
+                        // No ml-2 needed here as the `flex items-center` on the cell handles alignment.
+                        // If there was a favicon, the mr-2 on faviconImg will handle spacing.
                         websiteCell.appendChild(textSpan);
                         if (urlError) {
                             const errorSpan = document.createElement('span');
