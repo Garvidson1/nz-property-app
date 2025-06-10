@@ -314,11 +314,6 @@ button#searchButton:disabled {
     background-color: #f7fafc; /* Tailwind gray-50 */
 }
 
-.pac-item-query {
-    font-weight: 600;
-    color: #2d3748; /* Tailwind gray-700 */
-}
-
 .pac-item-selected { /* This class seems to be for when an item is keyboard selected, not standard */
     background-color: #e2e8f0; /* Tailwind gray-200 */
 }
@@ -431,6 +426,10 @@ button#searchButton:disabled {
 
 /* Original Responsive rules from user's CSS (for elements outside header) */
 @media (max-width: 640px) {
+    .container {
+        padding: 20px; /* Reduced padding for containers on small mobile screens */
+    }
+
     #summaryData {
         flex-direction: column;
         align-items: center; 
