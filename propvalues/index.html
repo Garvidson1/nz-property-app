@@ -488,7 +488,12 @@
                             }
 
                             const urlData = await urlResponse.json();
-                            let finalUrl = urlData.url;
+                            let finalUrl;
+                            if (apiInfo.siteName === "RealEstate.co.nz") { // Added condition to specifically get realEstateUrl for RealEstate.co.nz
+                                finalUrl = urlData.realEstateUrl; // Access the realEstateUrl property
+                            } else {
+                                finalUrl = urlData.url;
+                            }
                             let combinedScrapedData = urlData.data || {};
 
                             if (apiInfo.scrapeValuesUrl && finalUrl && !finalUrl.includes("No direct link found.")) {
