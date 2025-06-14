@@ -41,9 +41,10 @@ export default async function handler(req, res) {
         if (propertyObject) {
             const addressSlug = propertyObject["address-slug"];
             const shortId = propertyObject["short-id"];
-            const finalUrl = `https://www.realestate.co.nz/property/${addressSlug}/${shortId}`;
+            const realEstateUrl = `https://www.realestate.co.nz/property/${addressSlug}/${shortId}`;
+            const platformApiUrl = `https://platform.realestate.co.nz/search/v1/properties/${shortId}`; // The new URL
 
-            return res.status(200).json({ url: finalUrl });
+            return res.status(200).json({ realEstateUrl, platformApiUrl }); // Return both URLs
         } else {
             return res.status(404).json({ error: 'No direct property link found for RealEstate.co.nz.' });
         }
