@@ -3,3 +3,4 @@ Test cases:
 3 Snell Avenue, Papakura = est < 1M, ARR >0
 21 Neptune Avenue, Beach Haven = est > 1M, ARR >0
 32 Neptune Avenue, Beach Haven = est >1M, ARR <0
+40B Cresta Avenue, Beach Haven = est <1M, ARR <0
