@@ -42,9 +42,10 @@ export default async function handler(req, res) {
             const addressSlug = propertyObject["address-slug"];
             const shortId = propertyObject["short-id"];
             const realEstateUrl = `https://www.realestate.co.nz/property/${addressSlug}/${shortId}`;
-            const platformApiUrl = `https://platform.realestate.co.nz/search/v1/properties/${shortId}`; // The new URL
+            const platformApiUrl = `https://platform.realestate.co.nz/search/v1/properties/${shortId}`; // New API URL for direct data fetching
 
-            return res.status(200).json({ realEstateUrl, platformApiUrl }); // Return both URLs
+            // Return both URLs: 'url' for the public link and 'data.platformApiUrl' for scraping
+            return res.status(200).json({ url: realEstateUrl, data: { platformApiUrl: platformApiUrl } });
         } else {
             return res.status(404).json({ error: 'No direct property link found for RealEstate.co.nz.' });
         }
