@@ -488,20 +488,21 @@
                             }
 
                             const urlData = await urlResponse.json();
-                            let finalUrl;
-                            if (apiInfo.siteName === "RealEstate.co.nz") { // Added condition to specifically get realEstateUrl for RealEstate.co.nz
-                                finalUrl = urlData.realEstateUrl; // Access the realEstateUrl property
-                            } else {
-                                finalUrl = urlData.url;
-                            }
+                            let finalUrl = urlData.url;
                             let combinedScrapedData = urlData.data || {};
 
                             if (apiInfo.scrapeValuesUrl && finalUrl && !finalUrl.includes("No direct link found.")) {
+                                let urlToSendForScraping = finalUrl;
+                                // If it's RealEstate.co.nz, use the platformApiUrl for scraping
+                                if (apiInfo.siteName === "RealEstate.co.nz" && urlData.data && urlData.data.platformApiUrl) {
+                                    urlToSendForScraping = urlData.data.platformApiUrl;
+                                }
+
                                 try {
                                     const scrapeResponse = await fetch(apiInfo.scrapeValuesUrl, {
                                         method: 'POST',
                                         headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ url: finalUrl })
+                                        body: JSON.stringify({ url: urlToSendForScraping })
                                     });
                                     if (scrapeResponse.ok) {
                                         const scrapeData = await scrapeResponse.json();
