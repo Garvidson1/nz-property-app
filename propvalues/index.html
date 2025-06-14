@@ -213,6 +213,27 @@
                 return numericValue;
             }
 
+            // New function to format numbers for display (e.g., $705K, $1.01M)
+            function formatNumberForDisplay(value) {
+                const numericValue = parseCurrencyToNumber(value);
+
+                if (isNaN(numericValue)) {
+                    return value; // Return as is if it's 'N/A', 'Error', etc.
+                }
+
+                if (numericValue >= 1000000) {
+                    // For millions, two decimal places
+                    return `$${(numericValue / 1000000).toFixed(2)}M`;
+                } else if (numericValue >= 1000) {
+                    // For thousands, no decimal place
+                    return `$${(numericValue / 1000).toFixed(0)}K`;
+                } else {
+                    // For values less than 1000, display as is with locale formatting
+                    return `$${numericValue.toLocaleString('en-NZ', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                }
+            }
+
+
             async function loadGoogleMapsScript() {
                 try {
                     const response = await fetch('/api/get-google-maps-key');
@@ -383,7 +404,7 @@
 
                     const lowCell = row.insertCell();
                     const lowValue = estimatedValues.low || 'N/A';
-                    lowCell.textContent = lowValue;
+                    lowCell.textContent = formatNumberForDisplay(lowValue); // Apply formatting here
                     lowCell.className = 'py-2 px-4 border-b border-gray-200';
                     const numericLow = parseCurrencyToNumber(lowValue);
                     if (!isNaN(numericLow)) {
@@ -391,10 +412,11 @@
                     }
 
                     const mediumCell = row.insertCell();
-                    mediumCell.textContent = estimatedValues.medium || 'N/A';
+                    const mediumValue = estimatedValues.medium || 'N/A';
+                    mediumCell.textContent = formatNumberForDisplay(mediumValue); // Apply formatting here
                     mediumCell.className = 'py-2 px-4 border-b border-gray-200';
                     // Note: QV.co.nz medium value is already abbreviated, parseCurrencyToNumber handles K/M
-                    const numericMediumForHighlight = parseCurrencyToNumber(estimatedValues.medium);
+                    const numericMediumForHighlight = parseCurrencyToNumber(mediumValue);
                     if (!isNaN(numericMediumForHighlight)) {
                          // We don't need to add to mediumValues here, as it's for calculation, not highlighting.
                          // But if we wanted to highlight highest medium, we'd add it similarly to low/high.
@@ -403,7 +425,7 @@
 
                     const highCell = row.insertCell();
                     const highValue = estimatedValues.high || 'N/A';
-                    highCell.textContent = highValue;
+                    highCell.textContent = formatNumberForDisplay(highValue); // Apply formatting here
                     highCell.className = 'py-2 px-4 border-b border-gray-200';
                     const numericHigh = parseCurrencyToNumber(highValue);
                     if (!isNaN(numericHigh)) {
