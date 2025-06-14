@@ -1,8 +1,10 @@
 // my-nz-app/api/scrape-realestate-values.js
-const cheerio = require('cheerio'); // Use cheerio instead of puppeteer
+// No longer need cheerio as we are fetching JSON
+// const cheerio = require('cheerio'); 
 
 module.exports = async (req, res) => {
-    const { url } = req.body;
+    // The 'url' in req.body will now be the platformApiUrl from get-realestate-url.js
+    const { url } = req.body; 
 
     if (!url) {
         console.error('Scrape RealEstate Values: URL is required.');
@@ -17,56 +19,38 @@ module.exports = async (req, res) => {
     let debugLog = [];
 
     try {
-        debugLog.push(`Attempting to fetch HTML for URL: ${url}`);
+        debugLog.push(`Attempting to fetch JSON from RealEstate.co.nz platform API for URL: ${url}`);
         const response = await fetch(url);
 
         if (!response.ok) {
             const errorText = await response.text();
             debugLog.push(`Failed to fetch URL. Status: ${response.status}, Response: ${errorText.substring(0, 500)}`);
-            throw new Error(`Failed to fetch RealEstate.co.nz page: ${response.status}`);
+            throw new Error(`Failed to fetch RealEstate.co.nz platform API: ${response.status}`);
         }
 
-        const html = await response.text();
-        debugLog.push('HTML fetched successfully. Loading with Cheerio.');
-        const $ = cheerio.load(html);
+        const json = await response.json();
+        debugLog.push('JSON fetched successfully. Extracting estimated values.');
 
-        // Find the valuation badges using the data-test attribute
-        const badges = $('[data-test-reinz-valuation-badge]');
+        // Extract values from the 'estimated-value' object within the JSON response
+        const estimatedValueData = json.data && json.data.attributes && json.data.attributes['estimated-value'];
 
-        if (badges.length === 0) {
-            debugLog.push('No valuation badges found on the page using [data-test-reinz-valuation-badge].');
-            // Log a part of the HTML to debug if the selector is wrong
-            debugLog.push('----- HTML SNIPPET (No badges found) -----');
-            debugLog.push(html.substring(0, Math.min(html.length, 2000))); // Log first 2000 chars of HTML
-            debugLog.push('----- END HTML SNIPPET -----');
-        } else {
-            debugLog.push(`Found ${badges.length} valuation badges.`);
-            badges.each((i, badge) => {
-                const labelElement = $(badge).find('p.text-xs');
-                const valueElement = $(badge).find('h4[data-test-reinz-valuation-badge-value]');
-
-                const label = labelElement.text().trim().toLowerCase();
-                const value = valueElement.text().trim();
-                debugLog.push(`Extracted label: "${label}", value: "${value}"`);
-
-                if (label.includes('low')) {
-                    scrapedValues.low = value;
-                } else if (label.includes('med')) {
-                    scrapedValues.medium = value;
-                } else if (label.includes('high')) {
-                    scrapedValues.high = value;
-                }
-            });
+        if (estimatedValueData) {
+            // Format the numeric values as currency strings
+            scrapedValues.low = estimatedValueData['value-low'] ? estimatedValueData['value-low'].toLocaleString('en-NZ', { style: 'currency', currency: 'NZD', maximumFractionDigits: 0 }) : 'N/A';
+            scrapedValues.medium = estimatedValueData['value-mid'] ? estimatedValueData['value-mid'].toLocaleString('en-NZ', { style: 'currency', currency: 'NZD', maximumFractionDigits: 0 }) : 'N/A';
+            scrapedValues.high = estimatedValueData['value-high'] ? estimatedValueData['value-high'].toLocaleString('en-NZ', { style: 'currency', currency: 'NZD', maximumFractionDigits: 0 }) : 'N/A';
             debugLog.push('Scraping complete. Extracted values: ' + JSON.stringify(scrapedValues));
+        } else {
+            debugLog.push('No estimated-value data found in the JSON response for this property.');
         }
-
+        
         res.status(200).json({ estimatedValues: scrapedValues, debugLog: debugLog });
 
     } catch (error) {
-        debugLog.push(`Error during RealEstate.co.nz scraping: ${error.message}`);
-        console.error('Error scraping RealEstate.co.nz values:', error);
+        debugLog.push(`Error during RealEstate.co.nz platform API scraping: ${error.message}`);
+        console.error('Error scraping RealEstate.co.nz platform API values:', error);
         res.status(500).json({ error: `Failed to scrape RealEstate.co.nz values: ${error.message}`, estimatedValues: scrapedValues, debugLog: debugLog });
     } finally {
-        console.log('RealEstate.co.nz Scrape Debug Log (Cheerio):', debugLog.join('\n'));
+        console.log('RealEstate.co.nz Scrape Debug Log (JSON API):', debugLog.join('\n'));
     }
 };
