@@ -29,7 +29,7 @@ button#searchButton:disabled {
        so the container's top margin can remain as is for spacing below the header area. */
     padding: 30px;
     background-color: #ffffff;
-    border-radius: 20px;
+    border-radius: 10px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border: 1px solid #d7d7d8;
 }
@@ -185,7 +185,7 @@ button#searchButton:disabled {
   /* width: 200px;       Existing width */
     height: 165px;       /* Existing height */
     flex-shrink: 0;      /* Keep photo from shrinking */
-    border-radius: 18px;  /* Slightly more rounded corners than the original 4px */
+    border-radius: 10px;  /* Slightly more rounded corners than the original 4px */
     overflow: hidden;      /* Ensures the image respects the border-radius */
     background-color: #f0f4f8; /* Fallback background, matches page bg or use a light gray like #EDF2F7 */
     border: 1px solid #e2e8f0; /* A soft border, consistent with other borders (Tailwind gray-200) */
