@@ -15,6 +15,11 @@ body {
     border-radius: 10px !important; /* Added !important here */
 }
 
+.bg-gray-50 {
+    --tw-bg-opacity: 1;
+    background-color: #f3f4fb !important;
+}
+
 /* New style for disabled button */
 button#searchButton:disabled {
     background-color: #cccccc; /* Gray background */
