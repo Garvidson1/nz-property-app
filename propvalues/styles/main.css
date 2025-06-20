@@ -427,7 +427,7 @@ button#searchButton:disabled {
 /* Original Responsive rules from user's CSS (for elements outside header) */
 @media (max-width: 640px) {
     .container {
-        padding: 10px; /* Reduced padding for containers on small mobile screens */
+        padding: 20px; /* Reduced padding for containers on small mobile screens */
     }
 
     #summaryData {
